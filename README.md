@@ -1,7 +1,7 @@
 <h1 align="center">iLab GPT Conjure</h1>
 
 <p align="center">
-  <strong>本地优先的 AI 图片生成工作台，支持 WebUI、CLI、提示词模板和可复用参考图工作流。</strong>
+  <strong>面向 GPT-image-2 的 AI 图片生成 WebUI 工作台，支持 Codex Responses、OpenAI 兼容 API、提示词模板和多账号轮询。</strong>
 </p>
 
 <p align="center">
@@ -22,12 +22,15 @@
 </p>
 
 
-iLab GPT Conjure 是一个本地优先的图片生成工作台，提供 WebUI 和 CLI，
-面向提示词编写、参考图工作流、批量生成、任务队列和结果归档。
+iLab GPT Conjure 是面向 GPT-image-2 的 AI 图片生成 WebUI 工作台，同时
+提供 CLI 便于本地自动化。它支持 Codex Responses 与 OpenAI 兼容 API 两种
+接入方式，并内置公用图库、多类型 chip 快捷引用、提示词模板、多任务并发，
+以及面向本机 OAuth 工作流的多账号轮询。
 
-English: iLab GPT Conjure is a local-first AI image generation workbench for
-prompt writing, reference image workflows, batch generation, task queues, and
-result archiving.
+English: iLab GPT Conjure is an AI image generation WebUI workbench for
+GPT-image-2 with Codex Responses and OpenAI-compatible API support, shared
+gallery references, multi-type quick chips, prompt templates, concurrent tasks,
+and multi-account rotation for local OAuth workflows.
 
 公开版推荐优先使用 OpenAI-compatible API 模式，通过你配置的供应商使用
 Images API 或 Responses API 形态。
@@ -44,10 +47,12 @@ Images API 或 Responses API 形态。
 
 ## 功能
 
-- 文生图、参考图生成和图像编辑工作流。
-- 本地任务队列、状态更新、历史记录、缩略图和结果归档。
+- 面向 GPT-image-2 的文生图、参考图生成和图像编辑工作流。
+- 支持 Codex Responses 和 OpenAI 兼容 API 接入；公开或共享使用优先选择 API 模式。
+- 多任务并发、本地队列状态、历史记录、缩略图和结果归档。
 - 单任务多图输出、部分失败处理和失败重试。
-- 公用图库、最近参考图、颜色 chip、提示词片段和提示词模板。
+- 公用图库、最近参考图、颜色 chip、提示词片段 chip 和提示词模板。
+- 高级本机 OAuth 工作流支持多账号轮询。
 - API 供应商配置，支持 Base URL、API Key、图像模型、调用方式和并发上限。
 - CLI 支持生成、参考图、图像编辑、mask 和 dry-run。
 

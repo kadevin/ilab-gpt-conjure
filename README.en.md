@@ -1,7 +1,7 @@
 <h1 align="center">iLab GPT Conjure</h1>
 
 <p align="center">
-  <strong>Local-first AI image generation workbench for WebUI, CLI, prompt templates, and reusable reference workflows.</strong>
+  <strong>AI image generation WebUI workbench for GPT-image-2 with Codex Responses, OpenAI-compatible API access, prompt templates, and multi-account rotation.</strong>
 </p>
 
 <p align="center">
@@ -22,9 +22,11 @@
 </p>
 
 
-iLab GPT Conjure is a local-first image generation workbench for prompt writing,
-reference image workflows, batch generation, task queues, and result archiving.
-It provides both a WebUI and a CLI.
+iLab GPT Conjure is an AI image generation WebUI workbench for GPT-image-2, with
+a companion CLI for local automation. It supports both Codex Responses and
+OpenAI-compatible API access, and includes shared gallery references, multi-type
+quick chips, prompt templates, concurrent tasks, and multi-account rotation for
+local OAuth workflows.
 
 The recommended public integration path is OpenAI-compatible API mode, using
 the Images API or Responses API shape provided by your configured provider.
@@ -41,11 +43,15 @@ Download portable packages from [Downloads / Releases](RELEASES.md).
 
 ## Features
 
-- Text-to-image, reference-image generation, and image editing workflows.
-- Local task queue, status updates, history, thumbnails, and result archive.
-- Multiple outputs per task with partial-failure handling and retry controls.
-- Local gallery, recent reference images, color chips, prompt snippets, and
-  reusable prompt templates.
+- GPT-image-2 text-to-image, reference-image generation, and image editing
+  workflows.
+- Codex Responses and OpenAI-compatible API access, with the API path
+  recommended for public or shared use.
+- Concurrent task execution, local queue state, history, thumbnails, and result
+  archive.
+- Shared gallery references, recent reference images, color chips, prompt
+  snippet chips, and reusable prompt templates.
+- Multi-account rotation for advanced local OAuth workflows.
 - API provider profiles with configurable base URL, API key, image model, API
   mode, and concurrency.
 - CLI support for generation, image references, image edits, masks, and dry runs.
