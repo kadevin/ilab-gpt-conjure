@@ -1,7 +1,7 @@
 <h1 align="center">iLab GPT Conjure</h1>
 
 <p align="center">
-  <strong>AI image generation WebUI workbench for GPT-image-2 with Codex Responses, OpenAI-compatible API access, prompt templates, and multi-account rotation.</strong>
+  <sub>GPT-image-2 WebUI workbench · Codex Responses / OpenAI-compatible API · Gallery, chips, templates, and concurrent tasks.</sub>
 </p>
 
 <p align="center">
@@ -22,6 +22,16 @@
 </p>
 
 
+<p align="center">
+  English · <a href="README.md">中文</a> · <a href="RELEASES.md">Downloads / Releases</a>
+</p>
+
+<p align="center">
+  <img src="assets/2026-06-08_09-50.png" alt="iLab GPT Conjure WebUI screenshot" width="960" />
+</p>
+
+## Overview
+
 iLab GPT Conjure is an AI image generation WebUI workbench for GPT-image-2, with
 a companion CLI for local automation. It supports both Codex Responses and
 OpenAI-compatible API access, and includes shared gallery references, multi-type
@@ -32,14 +42,6 @@ The recommended public integration path is OpenAI-compatible API mode, using
 the Images API or Responses API shape provided by your configured provider.
 
 Download portable packages from [Downloads / Releases](RELEASES.md).
-
-<p align="center">
-  <img src="assets/2026-06-08_09-50.png" alt="iLab GPT Conjure WebUI screenshot" width="960" />
-</p>
-
-## Language
-
-[中文](README.md) | English
 
 ## Features
 

@@ -1,7 +1,7 @@
 <h1 align="center">iLab GPT Conjure</h1>
 
 <p align="center">
-  <strong>面向 GPT-image-2 的 AI 图片生成 WebUI 工作台，支持 Codex Responses、OpenAI 兼容 API、提示词模板和多账号轮询。</strong>
+  <sub>GPT-image-2 WebUI 工作台 · Codex Responses / OpenAI 兼容 API · 图库、Chip、模板与并发任务</sub>
 </p>
 
 <p align="center">
@@ -22,28 +22,25 @@
 </p>
 
 
-iLab GPT Conjure 是面向 GPT-image-2 的 AI 图片生成 WebUI 工作台，同时
-提供 CLI 便于本地自动化。它支持 Codex Responses 与 OpenAI 兼容 API 两种
-接入方式，并内置公用图库、多类型 chip 快捷引用、提示词模板、多任务并发，
-以及面向本机 OAuth 工作流的多账号轮询。
-
-English: iLab GPT Conjure is an AI image generation WebUI workbench for
-GPT-image-2 with Codex Responses and OpenAI-compatible API support, shared
-gallery references, multi-type quick chips, prompt templates, concurrent tasks,
-and multi-account rotation for local OAuth workflows.
-
-公开版推荐优先使用 OpenAI-compatible API 模式，通过你配置的供应商使用
-Images API 或 Responses API 形态。
-
-免安装一键包下载见 [下载 / Releases](RELEASES.md)。
+<p align="center">
+  中文 · <a href="README.en.md">English</a> · <a href="RELEASES.md">下载 / Releases</a>
+</p>
 
 <p align="center">
   <img src="assets/2026-06-08_09-50.png" alt="iLab GPT Conjure WebUI 截图" width="960" />
 </p>
 
-## 语言
+## 简介
 
-中文 | [English](README.en.md)
+iLab GPT Conjure 是面向 GPT-image-2 的 AI 图片生成 WebUI 工作台，同时
+提供 CLI 便于本地自动化。它支持 Codex Responses 与 OpenAI 兼容 API 两种
+接入方式，并内置公用图库、多类型 chip 快捷引用、提示词模板、多任务并发，
+以及面向本机 OAuth 工作流的多账号轮询。
+
+公开版推荐优先使用 OpenAI-compatible API 模式，通过你配置的供应商使用
+Images API 或 Responses API 形态。
+
+免安装一键包下载见 [下载 / Releases](RELEASES.md)。
 
 ## 功能
 
