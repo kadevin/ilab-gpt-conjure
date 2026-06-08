@@ -26,6 +26,11 @@ fi
 mkdir -p "${DATA_DIR}/logs"
 export ILAB_CONJURE_DATA_DIR="${DATA_DIR}"
 export PYTHONPATH="${APP_DIR}:${APP_DIR}/.deps"
+CERTIFI_CA_BUNDLE="${APP_DIR}/.deps/certifi/cacert.pem"
+if [ -f "$CERTIFI_CA_BUNDLE" ]; then
+  export SSL_CERT_FILE="$CERTIFI_CA_BUNDLE"
+  export REQUESTS_CA_BUNDLE="$CERTIFI_CA_BUNDLE"
+fi
 LOG_FILE="${DATA_DIR}/logs/webui-server.log"
 
 cd "$APP_DIR"

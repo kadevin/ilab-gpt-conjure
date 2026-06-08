@@ -26,6 +26,11 @@ if not exist "%DATA_DIR%" mkdir "%DATA_DIR%"
 if not exist "%DATA_DIR%\logs" mkdir "%DATA_DIR%\logs"
 
 set "ILAB_CONJURE_DATA_DIR=%DATA_DIR%"
+set "CERTIFI_CA_BUNDLE=%BUNDLE_DIR%python\Lib\site-packages\certifi\cacert.pem"
+if exist "%CERTIFI_CA_BUNDLE%" (
+  set "SSL_CERT_FILE=%CERTIFI_CA_BUNDLE%"
+  set "REQUESTS_CA_BUNDLE=%CERTIFI_CA_BUNDLE%"
+)
 set "LOG_FILE=%DATA_DIR%\logs\webui-server.log"
 
 cd /d "%APP_DIR%"

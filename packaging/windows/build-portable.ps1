@@ -164,6 +164,10 @@ $env:PIP_NO_CACHE_DIR = "1"
 
 & $PythonExe $GetPipPath --no-warn-script-location
 & $PythonExe -m pip install --no-warn-script-location -r (Join-Path $AppDir "requirements-webui.txt")
+$CertifiCaBundle = Join-Path $PythonDir "Lib\site-packages\certifi\cacert.pem"
+if (-not (Test-Path $CertifiCaBundle)) {
+  throw "certifi CA bundle was not installed at $CertifiCaBundle"
+}
 & $PythonExe -m pip freeze | Set-Content -Path (Join-Path $BundleRoot "python-requirements.lock.txt") -Encoding UTF8
 & $PythonExe -c "import fastapi, uvicorn, multipart, httpx, PIL; import portable_webui_app; print('portable import ok')"
 

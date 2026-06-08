@@ -2,7 +2,10 @@ from __future__ import annotations
 
 import os
 import socket
+import ssl
 from dataclasses import dataclass
+from functools import lru_cache
+from pathlib import Path
 from typing import Protocol
 from urllib import error, request
 
@@ -20,6 +23,22 @@ def _request_timeout_seconds(value: float | None = None) -> float:
     except ValueError:
         return DEFAULT_REQUEST_TIMEOUT_SECONDS
     return parsed if parsed > 0 else DEFAULT_REQUEST_TIMEOUT_SECONDS
+
+
+@lru_cache(maxsize=1)
+def _https_ssl_context() -> ssl.SSLContext | None:
+    if os.getenv("SSL_CERT_FILE") or os.getenv("SSL_CERT_DIR"):
+        return ssl.create_default_context()
+
+    try:
+        import certifi  # type: ignore[import-not-found]
+    except Exception:
+        return None
+
+    ca_file = Path(certifi.where())
+    if not ca_file.is_file():
+        return None
+    return ssl.create_default_context(cafile=str(ca_file))
 
 
 @dataclass
@@ -54,7 +73,8 @@ class UrllibTransport:
     ) -> HTTPResponse:
         req = request.Request(url=url, data=body, headers=headers, method=method)
         try:
-            with request.urlopen(req, timeout=self.timeout) as response:
+            context = _https_ssl_context() if url.lower().startswith("https://") else None
+            with request.urlopen(req, timeout=self.timeout, context=context) as response:
                 return HTTPResponse(
                     status=getattr(response, "status", response.getcode()),
                     body=response.read(),

@@ -83,8 +83,13 @@ class ClientTests(unittest.TestCase):
             def __exit__(self, *args: object) -> None:
                 return None
 
-        def fake_urlopen(request: object, timeout: float | None = None) -> FakeUrlopenResponse:
+        def fake_urlopen(
+            request: object,
+            timeout: float | None = None,
+            context: object | None = None,
+        ) -> FakeUrlopenResponse:
             captured["timeout"] = timeout
+            captured["context"] = context
             return FakeUrlopenResponse()
 
         with patch("codex_image.http.request.urlopen", fake_urlopen):
@@ -98,13 +103,18 @@ class ClientTests(unittest.TestCase):
         self.assertEqual(response.status, 200)
         self.assertEqual(response.body, b"ok")
         self.assertEqual(captured["timeout"], 12.5)
+        self.assertIsNotNone(captured["context"])
 
     def test_urllib_transport_converts_socket_timeout_to_timeout_error(self) -> None:
         from unittest.mock import patch
 
         from codex_image.http import UrllibTransport
 
-        def fake_urlopen(request: object, timeout: float | None = None) -> object:
+        def fake_urlopen(
+            request: object,
+            timeout: float | None = None,
+            context: object | None = None,
+        ) -> object:
             raise socket.timeout("timed out")
 
         with patch("codex_image.http.request.urlopen", fake_urlopen):
@@ -121,7 +131,11 @@ class ClientTests(unittest.TestCase):
 
         from codex_image.http import UrllibTransport
 
-        def fake_urlopen(request: object, timeout: float | None = None) -> object:
+        def fake_urlopen(
+            request: object,
+            timeout: float | None = None,
+            context: object | None = None,
+        ) -> object:
             raise urllib.error.URLError(socket.timeout("read timed out"))
 
         with patch("codex_image.http.request.urlopen", fake_urlopen):
