@@ -43,7 +43,7 @@ jobs:
       version: ${{ steps.version.outputs.version }}
     steps:
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           ref: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || inputs.ref }}
           fetch-depth: 0
@@ -98,7 +98,7 @@ jobs:
     needs: resolve-release
     steps:
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           ref: ${{ needs.resolve-release.outputs.checkout-ref }}
           fetch-depth: 0
@@ -108,7 +108,7 @@ jobs:
         run: ./packaging/windows/build-portable.ps1 -OutputDir dist -Version "${{ needs.resolve-release.outputs.version }}"
 
       - name: Upload Windows portable artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: ilab-gpt-conjure-windows-portable-x64
           path: |
@@ -134,7 +134,7 @@ jobs:
             artifact: ilab-gpt-conjure-macos-portable-x64
     steps:
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           ref: ${{ needs.resolve-release.outputs.checkout-ref }}
           fetch-depth: 0
@@ -152,7 +152,7 @@ jobs:
           ls "dist/${{ matrix.arch }}"/ilab-gpt-conjure_macos_portable_${{ matrix.arch }}_*.zip
 
       - name: Upload macOS portable artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: ${{ matrix.artifact }}
           path: |
@@ -172,13 +172,13 @@ jobs:
     if: ${{ needs.resolve-release.outputs.tag != '' }}
     steps:
       - name: Check out release notes
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           ref: ${{ needs.resolve-release.outputs.checkout-ref }}
           fetch-depth: 1
 
       - name: Download portable artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           path: dist-assets
 

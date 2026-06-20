@@ -5,6 +5,29 @@ import unittest
 
 
 class PortablePackagingTests(unittest.TestCase):
+    def test_github_workflows_use_node24_compatible_actions(self) -> None:
+        workflow_paths = [
+            Path(".github/workflows/ci.yml"),
+            Path(".github/workflows/release-portable.yml"),
+        ]
+        deprecated_actions = [
+            "actions/checkout@v4",
+            "actions/setup-node@v4",
+            "actions/setup-python@v5",
+            "actions/upload-artifact@v4",
+            "actions/download-artifact@v4",
+        ]
+
+        combined = "\n".join(path.read_text(encoding="utf-8") for path in workflow_paths)
+        for deprecated_action in deprecated_actions:
+            self.assertNotIn(deprecated_action, combined)
+
+        self.assertIn("actions/checkout@v7", combined)
+        self.assertIn("actions/setup-node@v6", combined)
+        self.assertIn("actions/setup-python@v6", combined)
+        self.assertIn("actions/upload-artifact@v6", combined)
+        self.assertIn("actions/download-artifact@v8", combined)
+
     def test_ci_workflow_avoids_github_unsupported_job_hashfiles_if(self) -> None:
         workflow = Path(".github/workflows/ci.yml")
         self.assertTrue(workflow.exists(), f"{workflow} should exist")
