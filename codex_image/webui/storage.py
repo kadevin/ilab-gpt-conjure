@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import re
 import uuid
 from datetime import UTC, datetime
 from pathlib import Path
@@ -44,6 +45,7 @@ from .thumbnails import create_image_thumbnail, input_thumbnail_filename, output
 
 TASK_SOURCE_DATA_SUBDIR = "tasks"
 TASK_SOURCE_DATA_SUFFIXES = ("metadata.json", "request.json", "debug-sse.jsonl")
+DIMENSION_SIZE_RE = re.compile(r"^\s*(\d{1,5})\s*[xX×]\s*(\d{1,5})\s*$")
 
 
 class TaskStorage:
@@ -398,7 +400,7 @@ class TaskStorage:
 def _sidebar_task_card(metadata: dict[str, Any]) -> dict[str, Any]:
     task_id = str(metadata.get("task_id") or "")
     params = metadata.get("params") if isinstance(metadata.get("params"), dict) else {}
-    size = str(metadata.get("output_size") or params.get("size") or "")
+    size = _sidebar_display_size(metadata, params)
     thumbnail_url = _first_sidebar_thumbnail_url(metadata)
     card = {
         "task_id": task_id,
@@ -438,6 +440,54 @@ def _sidebar_task_card(metadata: dict[str, Any]) -> dict[str, Any]:
         "thumbnail_urls": [thumbnail_url] if thumbnail_url else [],
     }
     return {key: value for key, value in card.items() if value not in ("", [], {}) or key in {"task_id", "summary_only", "params"}}
+
+
+def _sidebar_display_size(metadata: dict[str, Any], params: dict[str, Any]) -> str:
+    for value in (
+        metadata.get("output_size"),
+        _first_dimension_list_value(metadata.get("output_sizes")),
+        _first_output_dimension_value(metadata),
+        params.get("size"),
+    ):
+        size = _normalize_dimension_size(value)
+        if size:
+            return size
+    requested_size = str(params.get("size") or "")
+    return requested_size if requested_size and not requested_size.isdigit() else ""
+
+
+def _normalize_dimension_size(value: Any) -> str:
+    match = DIMENSION_SIZE_RE.match(str(value or ""))
+    if not match:
+        return ""
+    width = int(match.group(1))
+    height = int(match.group(2))
+    if width <= 0 or height <= 0:
+        return ""
+    return f"{width}x{height}"
+
+
+def _first_dimension_list_value(value: Any) -> str:
+    if not isinstance(value, list):
+        return ""
+    for item in value:
+        size = _normalize_dimension_size(item)
+        if size:
+            return size
+    return ""
+
+
+def _first_output_dimension_value(metadata: dict[str, Any]) -> str:
+    outputs = metadata.get("outputs")
+    if not isinstance(outputs, list):
+        return ""
+    for output in outputs:
+        if not isinstance(output, dict):
+            continue
+        size = _normalize_dimension_size(output.get("size"))
+        if size:
+            return size
+    return ""
 
 
 def _sidebar_input_thumbnail_urls(metadata: dict[str, Any]) -> list[str]:

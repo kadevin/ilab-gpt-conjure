@@ -4,6 +4,7 @@ import base64
 import json
 import re
 import uuid
+from io import BytesIO
 from os import PathLike
 from typing import Any
 from urllib.parse import urlsplit, urlunsplit
@@ -16,6 +17,10 @@ from .client_types import (
     image_model_supports_input_fidelity,
 )
 from .http import Transport, UrllibTransport
+
+
+_DIMENSION_SIZE_RE = re.compile(r"^\s*(\d{1,5})\s*[xX×]\s*(\d{1,5})\s*$")
+
 
 class OpenAIImagesImageClient:
     def __init__(
@@ -411,7 +416,12 @@ class OpenAIImagesImageClient:
                     image_bytes=image_bytes,
                     revised_prompt=str(item.get("revised_prompt", "")),
                     output_format=str(item.get("output_format") or response.get("output_format") or request_payload.get("output_format") or ""),
-                    size=str(item.get("size") or response.get("size") or request_payload.get("size") or ""),
+                    size=OpenAIImagesImageClient._result_size(
+                        image_bytes,
+                        item.get("size"),
+                        response.get("size"),
+                        request_payload.get("size"),
+                    ),
                     background=str(item.get("background") or response.get("background") or request_payload.get("background") or ""),
                     quality=str(item.get("quality") or response.get("quality") or request_payload.get("quality") or ""),
                     usage=response_usage,
@@ -420,6 +430,43 @@ class OpenAIImagesImageClient:
         if not results:
             raise RuntimeError("OpenAI-compatible images completed without image data")
         return results
+
+    @staticmethod
+    def _result_size(image_bytes: bytes, *candidates: Any) -> str:
+        image_size = OpenAIImagesImageClient._image_pixel_size(image_bytes)
+        if image_size:
+            return image_size
+        for candidate in candidates:
+            normalized = OpenAIImagesImageClient._normalize_dimension_size(candidate)
+            if normalized:
+                return normalized
+        return ""
+
+    @staticmethod
+    def _normalize_dimension_size(value: Any) -> str:
+        match = _DIMENSION_SIZE_RE.match(str(value or ""))
+        if not match:
+            return ""
+        width = int(match.group(1))
+        height = int(match.group(2))
+        if width <= 0 or height <= 0:
+            return ""
+        return f"{width}x{height}"
+
+    @staticmethod
+    def _image_pixel_size(image_bytes: bytes) -> str:
+        if not image_bytes:
+            return ""
+        try:
+            from PIL import Image
+
+            with Image.open(BytesIO(image_bytes)) as image:
+                width, height = image.size
+        except Exception:
+            return ""
+        if width <= 0 or height <= 0:
+            return ""
+        return f"{int(width)}x{int(height)}"
 
     @staticmethod
     def _image_bytes_from_response_item(item: dict[str, Any], *, url_fetcher: Any | None = None) -> bytes:

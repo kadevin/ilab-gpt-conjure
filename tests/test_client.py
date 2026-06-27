@@ -421,6 +421,30 @@ class ClientTests(unittest.TestCase):
         self.assertEqual(payload["output_format"], "webp")
         self.assertEqual(payload["output_compression"], 80)
 
+    def test_openai_images_client_ignores_numeric_response_size_and_uses_image_dimensions(self) -> None:
+        image_bytes = base64.b64decode(
+            "iVBORw0KGgoAAAANSUhEUgAAAAIAAAADCAIAAAA2iEnWAAAAFElEQVR4nGNkZGJmYGBgYgADKAUAAMQADPiqQJgAAAAASUVORK5CYII="
+        )
+        body = json.dumps(
+            {
+                "data": [
+                    {
+                        "b64_json": base64.b64encode(image_bytes).decode("ascii"),
+                        "size": str(len(image_bytes)),
+                    }
+                ]
+            }
+        ).encode("utf-8")
+
+        from codex_image.client import OpenAIImagesImageClient
+
+        result = OpenAIImagesImageClient.parse_response_json(
+            body,
+            request_payload={"size": "1024x1536", "output_format": "png"},
+        )
+
+        self.assertEqual(result.size, "2x3")
+
     def test_openai_images_client_can_request_and_parse_multiple_generated_images(self) -> None:
         first_b64 = base64.b64encode(b"api-image-1").decode("ascii")
         second_b64 = base64.b64encode(b"api-image-2").decode("ascii")

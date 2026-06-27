@@ -200,6 +200,48 @@ class WebUITaskTests(unittest.TestCase):
         self.assertNotIn("prompt_for_model", task)
         self.assertNotIn("request", task)
 
+    def test_recent_tasks_api_falls_back_to_requested_size_when_output_size_is_numeric(self) -> None:
+        from codex_image.webui.app import create_app
+
+        task_id = "20260624095053-12bdaf0e"
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            app = create_app(output_root=root, auth_checker=lambda: True, auto_start_queue=False)
+            metadata_path(root, task_id).parent.mkdir(parents=True, exist_ok=True)
+            metadata_path(root, task_id).write_text(
+                json.dumps(
+                    {
+                        "task_id": task_id,
+                        "created_at": "2026-06-24T09:50:53+00:00",
+                        "status": "completed",
+                        "prompt": "sidebar numeric output size",
+                        "params": {"size": "2336x3504", "n": 1},
+                        "output_size": "952614",
+                        "output_sizes": ["952614"],
+                        "outputs": [
+                            {
+                                "index": 1,
+                                "status": "completed",
+                                "size": "952614",
+                                "url": output_url(task_id, 1, "jpg"),
+                            }
+                        ],
+                        "generated_count": 1,
+                        "failed_count": 0,
+                        "total_count": 1,
+                    }
+                ),
+                encoding="utf-8",
+            )
+
+            client = TestClient(app)
+            response = client.get("/api/tasks/recent", params={"limit": 10})
+
+        self.assertEqual(response.status_code, 200)
+        task = response.json()["tasks"][0]
+        self.assertEqual(task["output_size"], "2336x3504")
+        self.assertEqual(task["params"]["size"], "2336x3504")
+
     def test_task_outputs_zip_downloads_multiple_outputs(self) -> None:
         from codex_image.webui.app import create_app
 
