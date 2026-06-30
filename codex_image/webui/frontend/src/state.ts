@@ -14,6 +14,7 @@ export interface WebUIState {
   realtimeSource: EventSource | null;
   realtimeSnapshotNeedsArchiveMigration: boolean;
   queueDragTaskId: string | null;
+  activeTaskGroupCollapsed: boolean;
   expandedTaskGroupKey: string | null;
   taskNotifications: TaskNotification[];
   taskNotificationUnreadCount: number;

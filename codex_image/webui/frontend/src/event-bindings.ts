@@ -34,6 +34,8 @@ function handleRunTaskShortcut(event: KeyboardEvent, els: WebUIElements, methods
   void call(methods, "runTask");
 }
 
+let systemSettingsBackdropPointerDown = false;
+
 export function bindWebUIEvents(state: WebUIState, els: WebUIElements, methods: LegacyMethods): void {
   call(methods, "bindShellUiEvents");
   call(methods, "bindFormControlEvents");
@@ -56,8 +58,14 @@ export function bindWebUIEvents(state: WebUIState, els: WebUIElements, methods: 
   });
   els.saveToGalleryButton?.addEventListener("click", () => call(methods, "saveUploadToGallery"));
   els.systemSettingsModalClose?.addEventListener("click", () => call(methods, "closeSystemSettingsModal"));
+  els.systemSettingsModal?.addEventListener("pointerdown", (event: Event) => {
+    systemSettingsBackdropPointerDown = event.target === els.systemSettingsModal;
+  });
   els.systemSettingsModal?.addEventListener("click", (event: Event) => {
-    if (event.target === els.systemSettingsModal) call(methods, "closeSystemSettingsModal");
+    if (event.target === els.systemSettingsModal && systemSettingsBackdropPointerDown) {
+      call(methods, "closeSystemSettingsModal");
+    }
+    systemSettingsBackdropPointerDown = false;
   });
   els.saveSettingsButton?.addEventListener("click", () => call(methods, "saveSettings"));
   els.authSourceGroup?.addEventListener("click", (event: Event) => call(methods, "handleAuthSourceClick", event));

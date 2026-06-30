@@ -96,6 +96,11 @@
     "taskStatus.retrying": "{reason}, retrying (attempt {attempt}/{max})",
     "taskStatus.nonRetryableAttempt": "Attempt {attempt}/{max}, not retryable",
     "taskStatus.manualRetryAvailable": "Stopped; failed images can be retried manually",
+    "taskStatus.waitingRetryShort": "Waiting retry",
+    "taskStatus.retryingShort": "Retrying",
+    "taskStatus.nonRetryableShort": "Not retryable",
+    "taskStatus.manualRetryShort": "Manual retry",
+    "taskStatus.stoppedShort": "Stopped",
     "taskStatus.runtime": "Duration {duration}",
     "taskStatus.runtimeCompleted": "Duration {duration} \xB7 completed {time}",
     "taskStatus.completedAt": "Completed {time}",
@@ -984,6 +989,11 @@
     "taskStatus.retrying": "{reason}, erneuter Versuch (Versuch {attempt}/{max})",
     "taskStatus.nonRetryableAttempt": "Versuch {attempt}/{max}, nicht wiederholbar",
     "taskStatus.manualRetryAvailable": "Angehalten; Fehlgeschlagene Bilder k\xF6nnen manuell erneut versucht werden",
+    "taskStatus.waitingRetryShort": "Wartet auf Retry",
+    "taskStatus.retryingShort": "Retry l\xE4uft",
+    "taskStatus.nonRetryableShort": "Nicht wiederholbar",
+    "taskStatus.manualRetryShort": "Manuell retry",
+    "taskStatus.stoppedShort": "Angehalten",
     "taskStatus.runtime": "Dauer {duration}",
     "taskStatus.runtimeCompleted": "Dauer {duration} \xB7 abgeschlossen {time}",
     "taskStatus.completedAt": "Abgeschlossen {time}",
@@ -1872,6 +1882,11 @@
     "taskStatus.retrying": "{reason}, reintentando (intento {attempt}/{max})",
     "taskStatus.nonRetryableAttempt": "Intento {attempt}/{max}, no reintentable",
     "taskStatus.manualRetryAvailable": "Detenido; las im\xE1genes fallidas se pueden volver a intentar manualmente",
+    "taskStatus.waitingRetryShort": "Esperando reintento",
+    "taskStatus.retryingShort": "Reintentando",
+    "taskStatus.nonRetryableShort": "No reintentable",
+    "taskStatus.manualRetryShort": "Reintento manual",
+    "taskStatus.stoppedShort": "Detenido",
     "taskStatus.runtime": "Duraci\xF3n {duration}",
     "taskStatus.runtimeCompleted": "Duraci\xF3n {duration} \xB7 completado {time}",
     "taskStatus.completedAt": "Completado {time}",
@@ -2760,6 +2775,11 @@
     "taskStatus.retrying": "{reason}, nouvelle tentative (tentative {attempt}/{max})",
     "taskStatus.nonRetryableAttempt": "Tentative {attempt}/{max}, non r\xE9essayable",
     "taskStatus.manualRetryAvailable": "Arr\xEAt\xE9; les images ayant \xE9chou\xE9 peuvent \xEAtre r\xE9essay\xE9es manuellement",
+    "taskStatus.waitingRetryShort": "En attente",
+    "taskStatus.retryingShort": "Nouvel essai",
+    "taskStatus.nonRetryableShort": "Non r\xE9essayable",
+    "taskStatus.manualRetryShort": "R\xE9essai manuel",
+    "taskStatus.stoppedShort": "Arr\xEAt\xE9",
     "taskStatus.runtime": "Dur\xE9e {duration}",
     "taskStatus.runtimeCompleted": "Dur\xE9e {duration} \xB7 compl\xE9t\xE9 {time}",
     "taskStatus.completedAt": "Termin\xE9 {time}",
@@ -3648,6 +3668,11 @@
     "taskStatus.retrying": "{reason}\u3001\u518D\u8A66\u884C\u4E2D ({attempt}/{max}\u3092\u8A66\u884C)",
     "taskStatus.nonRetryableAttempt": "{attempt}/{max}\u3092\u8A66\u884C\u3057\u307E\u3059\u3002\u518D\u8A66\u884C\u3067\u304D\u307E\u305B\u3093",
     "taskStatus.manualRetryAvailable": "\u505C\u6B62\u3057\u307E\u3057\u305F\u3002\u5931\u6557\u3057\u305F\u30A4\u30E1\u30FC\u30B8\u306F\u624B\u52D5\u3067\u518D\u8A66\u884C\u3067\u304D\u307E\u3059",
+    "taskStatus.waitingRetryShort": "\u518D\u8A66\u884C\u5F85\u3061",
+    "taskStatus.retryingShort": "\u518D\u8A66\u884C\u4E2D",
+    "taskStatus.nonRetryableShort": "\u518D\u8A66\u884C\u4E0D\u53EF",
+    "taskStatus.manualRetryShort": "\u624B\u52D5\u518D\u8A66\u884C",
+    "taskStatus.stoppedShort": "\u505C\u6B62",
     "taskStatus.runtime": "\u671F\u9593{duration}",
     "taskStatus.runtimeCompleted": "\u671F\u9593{duration}\xB7 \u5B8C\u4E86{time}",
     "taskStatus.completedAt": "\u5B8C\u4E86{time}",
@@ -4536,6 +4561,11 @@
     "taskStatus.retrying": "{reason}, \uC7AC\uC2DC\uB3C4 \uC911({attempt}/{max}\uC2DC\uB3C4)",
     "taskStatus.nonRetryableAttempt": "{attempt}/{max}\uC2DC\uB3C4, \uC7AC\uC2DC\uB3C4\uD560 \uC218 \uC5C6\uC74C",
     "taskStatus.manualRetryAvailable": "\uC911\uC9C0\uB418\uC5C8\uC2B5\uB2C8\uB2E4. \uC2E4\uD328\uD55C \uC774\uBBF8\uC9C0\uB294 \uC218\uB3D9\uC73C\uB85C \uB2E4\uC2DC \uC2DC\uB3C4\uD560 \uC218 \uC788\uC2B5\uB2C8\uB2E4.",
+    "taskStatus.waitingRetryShort": "\uC7AC\uC2DC\uB3C4 \uB300\uAE30",
+    "taskStatus.retryingShort": "\uC7AC\uC2DC\uB3C4 \uC911",
+    "taskStatus.nonRetryableShort": "\uC7AC\uC2DC\uB3C4 \uBD88\uAC00",
+    "taskStatus.manualRetryShort": "\uC218\uB3D9 \uC7AC\uC2DC\uB3C4",
+    "taskStatus.stoppedShort": "\uC911\uC9C0\uB428",
     "taskStatus.runtime": "\uAE30\uAC04{duration}",
     "taskStatus.runtimeCompleted": "\uAE30\uAC04{duration}\xB7 \uC644\uB8CC{time}",
     "taskStatus.completedAt": "\uC644\uB8CC\uB428{time}",
@@ -5424,6 +5454,11 @@
     "taskStatus.retrying": "{reason}, tentando novamente (tentativa {attempt}/{max})",
     "taskStatus.nonRetryableAttempt": "Tentativa {attempt}/{max}, n\xE3o \xE9 poss\xEDvel tentar novamente",
     "taskStatus.manualRetryAvailable": "Parado; imagens com falha podem ser repetidas manualmente",
+    "taskStatus.waitingRetryShort": "Aguardando retry",
+    "taskStatus.retryingShort": "Tentando novamente",
+    "taskStatus.nonRetryableShort": "Sem nova tentativa",
+    "taskStatus.manualRetryShort": "Retry manual",
+    "taskStatus.stoppedShort": "Parado",
     "taskStatus.runtime": "Dura\xE7\xE3o {duration}",
     "taskStatus.runtimeCompleted": "Dura\xE7\xE3o {duration} \xB7 conclu\xEDdo {time}",
     "taskStatus.completedAt": "Conclu\xEDdo {time}",
@@ -6312,6 +6347,11 @@
     "taskStatus.retrying": "{reason}, \u043F\u043E\u0432\u0442\u043E\u0440\u043D\u0430\u044F \u043F\u043E\u043F\u044B\u0442\u043A\u0430 (\u043F\u043E\u043F\u044B\u0442\u043A\u0430 {attempt}/{max})",
     "taskStatus.nonRetryableAttempt": "\u041F\u043E\u043F\u044B\u0442\u043A\u0430 {attempt}/{max}, \u043F\u043E\u0432\u0442\u043E\u0440\u043D\u0430\u044F \u043F\u043E\u043F\u044B\u0442\u043A\u0430 \u043D\u0435\u0432\u043E\u0437\u043C\u043E\u0436\u043D\u0430.",
     "taskStatus.manualRetryAvailable": "\u041E\u0441\u0442\u0430\u043D\u043E\u0432\u0438\u043B\u0441\u044F; \u043D\u0435\u0443\u0434\u0430\u0447\u043D\u044B\u0439 images \u043C\u043E\u0436\u043D\u043E \u043F\u043E\u0432\u0442\u043E\u0440\u0438\u0442\u044C \u0432\u0440\u0443\u0447\u043D\u0443\u044E",
+    "taskStatus.waitingRetryShort": "\u0416\u0434\u0435\u0442 \u043F\u043E\u0432\u0442\u043E\u0440\u0430",
+    "taskStatus.retryingShort": "\u041F\u043E\u0432\u0442\u043E\u0440",
+    "taskStatus.nonRetryableShort": "\u0411\u0435\u0437 \u043F\u043E\u0432\u0442\u043E\u0440\u0430",
+    "taskStatus.manualRetryShort": "\u0420\u0443\u0447\u043D\u043E\u0439 \u043F\u043E\u0432\u0442\u043E\u0440",
+    "taskStatus.stoppedShort": "\u041E\u0441\u0442\u0430\u043D\u043E\u0432\u043B\u0435\u043D\u043E",
     "taskStatus.runtime": "\u041F\u0440\u043E\u0434\u043E\u043B\u0436\u0438\u0442\u0435\u043B\u044C\u043D\u043E\u0441\u0442\u044C {duration}",
     "taskStatus.runtimeCompleted": "\u041F\u0440\u043E\u0434\u043E\u043B\u0436\u0438\u0442\u0435\u043B\u044C\u043D\u043E\u0441\u0442\u044C {duration} \xB7 \u0437\u0430\u0432\u0435\u0440\u0448\u0435\u043D\u043E {time}",
     "taskStatus.completedAt": "\u0417\u0430\u0432\u0435\u0440\u0448\u0435\u043D\u043E {time}",
@@ -7200,6 +7240,11 @@
     "taskStatus.retrying": "{reason}, nuovo tentativo (tentativo {attempt}/{max})",
     "taskStatus.nonRetryableAttempt": "Tentativo {attempt}/{max}, non riprovabile",
     "taskStatus.manualRetryAvailable": "fermato; fallito images pu\xF2 essere riprovato manualmente",
+    "taskStatus.waitingRetryShort": "In attesa",
+    "taskStatus.retryingShort": "Riprovo",
+    "taskStatus.nonRetryableShort": "Non riprovabile",
+    "taskStatus.manualRetryShort": "Riprova manuale",
+    "taskStatus.stoppedShort": "Fermato",
     "taskStatus.runtime": "Durata {duration}",
     "taskStatus.runtimeCompleted": "Durata {duration} \xB7 completato {time}",
     "taskStatus.completedAt": "Completato {time}",
@@ -8088,6 +8133,11 @@
     "taskStatus.retrying": "{reason}, \u092A\u0941\u0928\u0903 \u092A\u094D\u0930\u092F\u093E\u0938 \u0915\u0930 \u0930\u0939\u093E \u0939\u0942\u0902 (\u092A\u094D\u0930\u092F\u093E\u0938 {attempt}/{max})",
     "taskStatus.nonRetryableAttempt": "\u092A\u094D\u0930\u092F\u093E\u0938 {attempt}/{max}, \u092A\u0941\u0928\u0903 \u092A\u094D\u0930\u092F\u093E\u0938 \u092F\u094B\u0917\u094D\u092F \u0928\u0939\u0940\u0902",
     "taskStatus.manualRetryAvailable": "\u0930\u0941\u0915\u093E \u0939\u0941\u0906; \u0935\u093F\u092B\u0932 \u091A\u093F\u0924\u094D\u0930\u094B\u0902 \u0915\u094B \u092E\u0948\u0928\u094D\u092F\u0941\u0905\u0932 \u0930\u0942\u092A \u0938\u0947 \u092A\u0941\u0928\u0903 \u092A\u094D\u0930\u092F\u093E\u0938 \u0915\u093F\u092F\u093E \u091C\u093E \u0938\u0915\u0924\u093E \u0939\u0948",
+    "taskStatus.waitingRetryShort": "\u0930\u0940\u091F\u094D\u0930\u093E\u0908 \u092A\u094D\u0930\u0924\u0940\u0915\u094D\u0937\u093E",
+    "taskStatus.retryingShort": "\u0930\u0940\u091F\u094D\u0930\u093E\u0908 \u0939\u094B \u0930\u0939\u093E",
+    "taskStatus.nonRetryableShort": "\u0930\u0940\u091F\u094D\u0930\u093E\u0908 \u0928\u0939\u0940\u0902",
+    "taskStatus.manualRetryShort": "\u092E\u0948\u0928\u0941\u0905\u0932 \u0930\u0940\u091F\u094D\u0930\u093E\u0908",
+    "taskStatus.stoppedShort": "\u0930\u0941\u0915\u093E \u0939\u0941\u0906",
     "taskStatus.runtime": "\u0905\u0935\u0927\u093F {duration}",
     "taskStatus.runtimeCompleted": "\u0905\u0935\u0927\u093F {duration} \xB7 \u092A\u0942\u0930\u094D\u0923 {time}",
     "taskStatus.completedAt": "\u092A\u0942\u0930\u094D\u0923 {time}",
@@ -8976,6 +9026,11 @@
     "taskStatus.retrying": "{reason}\uFF0C\u91CD\u8BD5\u4E2D\uFF08\u7B2C {attempt}/{max} \u6B21\u5C1D\u8BD5\uFF09",
     "taskStatus.nonRetryableAttempt": "\u7B2C {attempt}/{max} \u6B21\uFF0C\u4E0D\u53EF\u91CD\u8BD5",
     "taskStatus.manualRetryAvailable": "\u5DF2\u505C\u6B62\uFF0C\u53EF\u624B\u52A8\u91CD\u8BD5\u5931\u8D25\u56FE\u7247",
+    "taskStatus.waitingRetryShort": "\u7B49\u5F85\u91CD\u8BD5",
+    "taskStatus.retryingShort": "\u91CD\u8BD5\u4E2D",
+    "taskStatus.nonRetryableShort": "\u4E0D\u53EF\u91CD\u8BD5",
+    "taskStatus.manualRetryShort": "\u53EF\u624B\u52A8\u91CD\u8BD5",
+    "taskStatus.stoppedShort": "\u5DF2\u505C\u6B62",
     "taskStatus.runtime": "\u8017\u65F6 {duration}",
     "taskStatus.runtimeCompleted": "\u8017\u65F6 {duration} \xB7 \u5B8C\u6210 {time}",
     "taskStatus.completedAt": "\u5B8C\u6210 {time}",
@@ -9864,6 +9919,11 @@
     "taskStatus.retrying": "{reason}\uFF0C\u91CD\u8A66\u4E2D\uFF08\u7B2C{attempt}/{max}\u6B21\u5617\u8A66\uFF09",
     "taskStatus.nonRetryableAttempt": "\u7B2C{attempt}/{max}\u6B21\uFF0C\u4E0D\u53EF\u91CD\u8A66",
     "taskStatus.manualRetryAvailable": "\u5DF2\u505C\u6B62\uFF0C\u53EF\u624B\u52D5\u91CD\u8A66\u5931\u6557\u5716\u7247",
+    "taskStatus.waitingRetryShort": "\u7B49\u5F85\u91CD\u8A66",
+    "taskStatus.retryingShort": "\u91CD\u8A66\u4E2D",
+    "taskStatus.nonRetryableShort": "\u4E0D\u53EF\u91CD\u8A66",
+    "taskStatus.manualRetryShort": "\u53EF\u624B\u52D5\u91CD\u8A66",
+    "taskStatus.stoppedShort": "\u5DF2\u505C\u6B62",
     "taskStatus.runtime": "\u8017\u6642{duration}",
     "taskStatus.runtimeCompleted": "\u8017\u6642{duration}\xB7 \u5B8C\u6210{time}",
     "taskStatus.completedAt": "\u5B8C\u6210{time}",
@@ -10752,6 +10812,11 @@
     "taskStatus.retrying": "{reason}\uFF0C\u91CD\u8A66\u4E2D\uFF08\u7B2C{attempt}/{max}\u6B21\u5617\u8A66\uFF09",
     "taskStatus.nonRetryableAttempt": "\u7B2C{attempt}/{max}\u6B21\uFF0C\u4E0D\u53EF\u91CD\u8A66",
     "taskStatus.manualRetryAvailable": "\u5DF2\u505C\u6B62\uFF0C\u53EF\u624B\u52D5\u91CD\u8A66\u5931\u6557\u5716\u7247",
+    "taskStatus.waitingRetryShort": "\u7B49\u5F85\u91CD\u8A66",
+    "taskStatus.retryingShort": "\u91CD\u8A66\u4E2D",
+    "taskStatus.nonRetryableShort": "\u4E0D\u53EF\u91CD\u8A66",
+    "taskStatus.manualRetryShort": "\u53EF\u624B\u52D5\u91CD\u8A66",
+    "taskStatus.stoppedShort": "\u5DF2\u505C\u6B62",
     "taskStatus.runtime": "\u8017\u6642{duration}",
     "taskStatus.runtimeCompleted": "\u8017\u6642{duration}\xB7 \u5B8C\u6210{time}",
     "taskStatus.completedAt": "\u5B8C\u6210{time}",
@@ -12239,6 +12304,7 @@
     selectedTaskId: "",
     selectionAnchorTaskId: "",
     deleteConfirming: false,
+    pendingDeleteTaskIds: [],
     deleteConfirmTaskId: "",
     deleteUnselectedConfirmTaskId: "",
     detailTask: null,
@@ -12779,9 +12845,8 @@
       historyState.loadedTaskSummaries.clear();
       historyState.selectedTaskIds.clear();
       historyState.selectionAnchorTaskId = "";
-      historyState.deleteConfirming = false;
+      clearHistoryDeleteConfirmation();
       historyState.deleteConfirmTaskId = "";
-      historyState.contextMenuDeleteConfirmKey = "";
       if (els.taskList) els.taskList.innerHTML = "";
       renderBulkToolbar();
     }
@@ -12995,7 +13060,7 @@
     const counts = `${task.generated_count || 0}/${task.total_count || 0}`;
     const selected = historyState.selectedTaskIds.has(task.task_id);
     const active = historyState.selectedTaskId === task.task_id;
-    const source = task.backend || task.provider || "";
+    const source = historyTaskSourceLabel(task);
     const promptMode = facetDisplayValue("prompt_mode", task.prompt_mode || "");
     const quality = facetDisplayValue("quality", task.quality || "");
     const metaItems = [
@@ -13031,6 +13096,21 @@
       </button>
     </article>
   `;
+  }
+  function historyTaskSourceLabel(task) {
+    const provider = String(
+      task.provider || task.api_provider_name || task.params?.api_provider_name || task.request?.webui_api_provider_name || task.request?.api_provider_name || ""
+    ).trim();
+    if (provider) return provider;
+    return historyBackendDisplayLabel(task.backend);
+  }
+  function historyBackendDisplayLabel(backend) {
+    const value = String(backend || "").trim();
+    if (value === "codex_images") return "Codex";
+    if (value === "codex_responses") return "Responses";
+    if (value === "openai_images") return "OpenAI";
+    if (value === "openai_responses") return "Responses";
+    return value;
   }
   function historyThumbnailRatioStyle(task) {
     const fromSize = parseAspectRatioParts(task.size, "x");
@@ -13069,9 +13149,10 @@
     return `${url}${separator}v=${HISTORY_THUMBNAIL_CACHE_VERSION}`;
   }
   function updateTaskSelectionVisuals(taskId = historyState.selectedTaskId) {
+    const batchSelecting = historyState.selectedTaskIds.size > 0;
     els.taskList?.querySelectorAll(".history-task-card").forEach((card) => {
       const cardTaskId = card.dataset.historyTaskCardId || "";
-      const active = Boolean(taskId && cardTaskId === taskId);
+      const active = Boolean(!batchSelecting && taskId && cardTaskId === taskId);
       const selected = historyState.selectedTaskIds.has(cardTaskId);
       card.classList.toggle("active", active);
       card.classList.toggle("selected", selected);
@@ -13088,19 +13169,19 @@
   function applyHistoryTaskSelection(taskIds, anchorTaskId = "") {
     historyState.selectedTaskIds = new Set(taskIds.filter(Boolean));
     if (anchorTaskId) historyState.selectionAnchorTaskId = anchorTaskId;
-    historyState.deleteConfirming = false;
-    historyState.contextMenuDeleteConfirmKey = "";
+    clearHistoryDeleteConfirmation();
     updateTaskSelectionVisuals();
     renderBulkToolbar();
+    syncHistorySelectionDetail();
   }
   function clearHistoryTaskSelection({ updateVisuals = true } = {}) {
     if (!historyState.selectedTaskIds.size && !historyState.selectionAnchorTaskId && !historyState.deleteConfirming) return;
     historyState.selectedTaskIds.clear();
     historyState.selectionAnchorTaskId = "";
-    historyState.deleteConfirming = false;
-    historyState.contextMenuDeleteConfirmKey = "";
+    clearHistoryDeleteConfirmation();
     if (updateVisuals) updateTaskSelectionVisuals();
     renderBulkToolbar();
+    syncHistorySelectionDetail();
   }
   function toggleHistoryTaskSelection(taskId, anchor = true) {
     if (!taskId) return;
@@ -13112,10 +13193,10 @@
     }
     historyState.selectedTaskIds = next;
     if (anchor) historyState.selectionAnchorTaskId = taskId;
-    historyState.deleteConfirming = false;
-    historyState.contextMenuDeleteConfirmKey = "";
+    clearHistoryDeleteConfirmation();
     updateTaskSelectionVisuals();
     renderBulkToolbar();
+    syncHistorySelectionDetail();
   }
   function selectHistoryTaskRange(anchorTaskId, taskId) {
     if (!taskId) return;
@@ -13145,7 +13226,7 @@
   async function loadTaskDetail(taskId) {
     if (!taskId) return;
     historyState.selectedTaskId = taskId;
-    historyState.deleteConfirming = false;
+    clearHistoryDeleteConfirmation();
     historyState.deleteConfirmTaskId = "";
     historyState.deleteUnselectedConfirmTaskId = "";
     updateHistoryUrl();
@@ -13166,6 +13247,7 @@
   }
   function renderDetailShell(message, className = "history-detail-empty") {
     if (!els.detail) return;
+    els.detail.dataset.historyDetailMode = "empty";
     els.detail.innerHTML = `
     <div class="history-detail-header">
       <div>
@@ -13177,6 +13259,40 @@
     <div class="${className}">${escapeHtml2(message)}</div>
   `;
   }
+  function renderSelectionDetail() {
+    if (!els.detail) return;
+    const count = historyState.selectedTaskIds.size;
+    if (!count) return;
+    els.detail.dataset.historyDetailMode = "selection";
+    els.detail.innerHTML = `
+    <div class="history-detail-header">
+      <div>
+        <p class="history-detail-kicker">${escapeHtml2(translate("history.detail"))}</p>
+        <h2 class="history-detail-title">${escapeHtml2(formatTranslation("history.selectedCount", { count }))}</h2>
+      </div>
+      <button id="historyDetailClose" class="drawer-close-button history-detail-close" type="button" data-history-detail-close aria-label="${escapeHtml2(translate("history.closeDetail"))}">\xD7</button>
+    </div>
+    <div class="history-selection-detail">
+      <div class="history-detail-empty">${escapeHtml2(formatTranslation("history.selectedCount", { count }))}</div>
+      <div class="history-detail-actions history-selection-actions">
+        <button class="ghost-button text-sm" type="button" data-history-bulk-archive>${escapeHtml2(translate("action.archive"))}</button>
+        <button class="ghost-button text-sm" type="button" data-history-bulk-restore>${escapeHtml2(translate("archive.restore"))}</button>
+        <button class="ghost-button text-sm danger-button" type="button" data-history-bulk-delete>${escapeHtml2(historyState.deleteConfirming ? translate("history.confirmDeleteSelected") : translate("action.delete"))}</button>
+        <button class="ghost-button text-sm" type="button" data-history-bulk-clear>${escapeHtml2(translate("action.cancel"))}</button>
+      </div>
+    </div>
+  `;
+  }
+  function syncHistorySelectionDetail() {
+    if (!els.detail) return;
+    if (historyState.selectedTaskIds.size) {
+      renderSelectionDetail();
+      return;
+    }
+    if (els.detail.dataset.historyDetailMode === "selection") {
+      renderDetailShell(translate("history.detailEmpty"));
+    }
+  }
   function historyTaskModeLabel(mode) {
     const value = String(mode || "");
     if (value === "generate") return translate("taskMode.generate");
@@ -13186,6 +13302,7 @@
   function renderTaskDetail(task) {
     if (!els.detail) return;
     historyState.detailTask = task;
+    els.detail.dataset.historyDetailMode = "task";
     const taskId = String(task.task_id || historyState.selectedTaskId || "");
     const urls = taskOutputRecords(task);
     const selectedCount = taskSelectedOutputIndexes(task).size;
@@ -13214,7 +13331,7 @@
       <span>${escapeHtml2(task.params?.size || task.output_size || "")}</span>
       <span>${escapeHtml2(facetDisplayValue("prompt_mode", task.params?.prompt_fidelity || ""))}</span>
       <span>${escapeHtml2(facetDisplayValue("quality", task.params?.quality || task.quality || ""))}</span>
-      <span>${escapeHtml2(task.backend || task.api_provider_name || "")}</span>
+      <span>${escapeHtml2(historyTaskSourceLabel(task))}</span>
     </div>
     <div class="history-detail-actions">
       <button class="ghost-button text-sm" type="button" data-history-reuse-task="${escapeHtml2(taskId)}">${escapeHtml2(translate("history.reuseTask"))}</button>
@@ -13337,7 +13454,7 @@
   function applyFilter(key, value) {
     historyState[key] = value;
     historyState.selectedTaskId = "";
-    historyState.deleteConfirming = false;
+    clearHistoryDeleteConfirmation();
     const attr = historyFilterAttribute(key);
     document.querySelectorAll(`[data-history-${attr}]`).forEach((node) => {
       node.classList.toggle("active", node.getAttribute(`data-history-${attr}`) === value);
@@ -13357,6 +13474,12 @@
       els.bulkDelete.classList.toggle("danger-button", historyState.deleteConfirming);
     }
     els.bulkDeleteCancel?.classList.toggle("hidden", !historyState.deleteConfirming);
+    if (count && els.detail?.dataset.historyDetailMode === "selection") renderSelectionDetail();
+  }
+  function clearHistoryDeleteConfirmation() {
+    historyState.deleteConfirming = false;
+    historyState.pendingDeleteTaskIds = [];
+    historyState.contextMenuDeleteConfirmKey = "";
   }
   async function setTaskArchiveState(taskId, archived) {
     const response = await fetch(`/api/tasks/${encodeURIComponent(taskId)}/archive`, {
@@ -13377,8 +13500,7 @@
     try {
       const tasks = await Promise.all(ids.map((taskId) => setTaskArchiveState(taskId, archived)));
       ids.forEach((taskId) => historyState.selectedTaskIds.delete(taskId));
-      historyState.deleteConfirming = false;
-      historyState.contextMenuDeleteConfirmKey = "";
+      clearHistoryDeleteConfirmation();
       tasks.forEach((task, index) => {
         const taskId = ids[index] || String(task?.task_id || "");
         upsertHistoryTaskSummaryCard(taskId, task);
@@ -13393,6 +13515,7 @@
       setText(els.resultSummary, errorMessage(error, archived ? translate("taskActions.archiveFailed") : translate("archive.restoreFailed")));
     } finally {
       renderBulkToolbar();
+      syncHistorySelectionDetail();
     }
   }
   async function archiveSingleTask(taskId, archived) {
@@ -13414,30 +13537,46 @@
     }
   }
   async function deleteSelectedTasks() {
-    const ids = [...historyState.selectedTaskIds];
-    if (!ids.length) return;
+    const selectedIds = [...historyState.selectedTaskIds].filter(Boolean);
+    const ids = historyState.deleteConfirming && historyState.pendingDeleteTaskIds.length ? historyState.pendingDeleteTaskIds.slice() : selectedIds;
+    if (!ids.length) {
+      clearHistoryDeleteConfirmation();
+      renderBulkToolbar();
+      return;
+    }
     if (!historyState.deleteConfirming) {
+      historyState.pendingDeleteTaskIds = ids;
       historyState.deleteConfirming = true;
       renderBulkToolbar();
       return;
     }
     setText(els.resultSummary, translate("archive.deleting"));
     try {
-      for (const taskId of ids) {
+      const results = await Promise.allSettled(ids.map(async (taskId) => {
         const response = await fetch(`/api/tasks/${encodeURIComponent(taskId)}`, { method: "DELETE" });
         const data = await response.json().catch(() => ({}));
         if (!response.ok) throw new Error(data.detail || translate("taskActions.deleteFailed"));
-      }
-      historyState.selectedTaskIds.clear();
-      historyState.deleteConfirming = false;
-      historyState.contextMenuDeleteConfirmKey = "";
-      removeHistoryTaskIdsFromWindow(ids);
+        return taskId;
+      }));
+      const deletedIds = results.filter((result) => result.status === "fulfilled").map((result) => result.value);
+      const failedIds = ids.filter((taskId) => !deletedIds.includes(taskId));
+      historyState.selectedTaskIds = new Set(failedIds);
+      historyState.selectionAnchorTaskId = failedIds[0] || "";
+      clearHistoryDeleteConfirmation();
+      if (deletedIds.length) removeHistoryTaskIdsFromWindow(deletedIds);
       await loadSummary();
-      setText(els.resultSummary, formatTranslation("batch.deletedCount", { count: ids.length, skipped: "" }));
+      if (deletedIds.length) {
+        const skipped = failedIds.length ? ` \xB7 ${translate("taskActions.deleteFailed")} ${failedIds.length}` : "";
+        setText(els.resultSummary, formatTranslation("batch.deletedCount", { count: deletedIds.length, skipped }));
+      } else {
+        setText(els.resultSummary, translate("taskActions.deleteFailed"));
+      }
     } catch (error) {
       setText(els.resultSummary, errorMessage(error, translate("taskActions.deleteFailed")));
     } finally {
+      updateTaskSelectionVisuals();
       renderBulkToolbar();
+      syncHistorySelectionDetail();
     }
   }
   async function deleteSingleHistoryTask(taskId, { confirmInMenu = false } = {}) {
@@ -13682,8 +13821,7 @@
     if (historyState.selectedTaskIds.size !== 1 || !historyState.selectedTaskIds.has(clickedTaskId)) {
       historyState.selectedTaskIds = /* @__PURE__ */ new Set([clickedTaskId]);
       historyState.selectionAnchorTaskId = clickedTaskId;
-      historyState.deleteConfirming = false;
-      historyState.contextMenuDeleteConfirmKey = "";
+      clearHistoryDeleteConfirmation();
       updateTaskSelectionVisuals();
       renderBulkToolbar();
     }
@@ -13781,6 +13919,10 @@
     const taskIds = historyState.contextMenu.taskIds.filter(Boolean);
     try {
       if (action === "delete") {
+        if (shouldDeleteCurrentHistorySelection(taskId)) {
+          await deleteHistoryContextSelectedTasks([...historyState.selectedTaskIds]);
+          return;
+        }
         const deleted = await deleteSingleHistoryTask(taskId, { confirmInMenu: true });
         if (deleted) closeHistoryContextMenu();
         return;
@@ -13821,16 +13963,21 @@
     if (historyState.contextMenuDeleteConfirmKey !== confirmKey) {
       historyState.contextMenuDeleteConfirmKey = confirmKey;
       historyState.deleteConfirming = true;
+      historyState.pendingDeleteTaskIds = taskIds.filter(Boolean);
       renderBulkToolbar();
       rerenderHistoryContextMenu();
       return;
     }
     historyState.selectedTaskIds = new Set(taskIds);
+    historyState.pendingDeleteTaskIds = taskIds.filter(Boolean);
     await deleteSelectedTasks();
     if (!historyState.deleteConfirming) closeHistoryContextMenu();
   }
   function historySelectedDeleteConfirmKey(taskIds) {
     return `selected:${taskIds.slice().sort().join("|")}`;
+  }
+  function shouldDeleteCurrentHistorySelection(taskId) {
+    return Boolean(taskId && historyState.selectedTaskIds.size > 1 && historyState.selectedTaskIds.has(taskId));
   }
   function positionHistoryContextMenu(menu, clientX, clientY) {
     const margin = 8;
@@ -13877,7 +14024,7 @@
   }
   function syncHistoryLightboxDetail(taskId, detail) {
     historyState.selectedTaskId = taskId;
-    historyState.deleteConfirming = false;
+    clearHistoryDeleteConfirmation();
     historyState.deleteConfirmTaskId = "";
     historyState.deleteUnselectedConfirmTaskId = "";
     historyState.detailTask = detail;
@@ -13916,6 +14063,10 @@
     }
   }
   function closeDetail() {
+    if (historyState.selectedTaskIds.size) {
+      clearHistoryTaskSelection();
+      return;
+    }
     historyState.selectedTaskId = "";
     els.page?.classList.remove("history-detail-open");
     updateHistoryUrl();
@@ -13958,9 +14109,10 @@
         historyState.selectedTaskIds.delete(taskId);
       }
       historyState.selectionAnchorTaskId = taskId;
-      historyState.deleteConfirming = false;
+      clearHistoryDeleteConfirmation();
       updateTaskSelectionVisuals();
       renderBulkToolbar();
+      syncHistorySelectionDetail();
     });
     document.addEventListener("click", (event) => {
       const target = event.target;
@@ -13999,7 +14151,12 @@
       }
       const deleteTaskButton = target?.closest("[data-history-delete-task]");
       if (deleteTaskButton) {
-        void deleteSingleHistoryTask(deleteTaskButton.dataset.historyDeleteTask || "");
+        const taskId = deleteTaskButton.dataset.historyDeleteTask || "";
+        if (shouldDeleteCurrentHistorySelection(taskId)) {
+          void deleteSelectedTasks();
+        } else {
+          void deleteSingleHistoryTask(taskId);
+        }
         return;
       }
       const referenceHandoffButton = target?.closest("[data-history-reference-handoff-url]");
@@ -14046,6 +14203,22 @@
       if (target?.closest("[data-history-delete-unselected-cancel]")) {
         historyState.deleteUnselectedConfirmTaskId = "";
         renderTaskDetail(historyState.detailTask || {});
+        return;
+      }
+      if (target?.closest("[data-history-bulk-archive]")) {
+        void archiveSelectedTasks(true);
+        return;
+      }
+      if (target?.closest("[data-history-bulk-restore]")) {
+        void archiveSelectedTasks(false);
+        return;
+      }
+      if (target?.closest("[data-history-bulk-delete]")) {
+        void deleteSelectedTasks();
+        return;
+      }
+      if (target?.closest("[data-history-bulk-clear]")) {
+        clearHistoryTaskSelection();
         return;
       }
       if (target?.closest("[data-history-detail-close]")) {
@@ -14097,7 +14270,7 @@
     els.bulkRestore?.addEventListener("click", () => void archiveSelectedTasks(false));
     els.bulkDelete?.addEventListener("click", () => void deleteSelectedTasks());
     els.bulkDeleteCancel?.addEventListener("click", () => {
-      historyState.deleteConfirming = false;
+      clearHistoryDeleteConfirmation();
       renderBulkToolbar();
     });
     els.refresh?.addEventListener("click", () => {

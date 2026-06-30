@@ -187,6 +187,27 @@ def _materialize_orphaned_running_failure(
         return metadata
     interrupted_at = utc_now()
     message = str(metadata.get("last_error") or metadata.get("error") or "Service restarted before this task completed.")
+    output_records = metadata.get("outputs")
+    normalized_outputs: list[Any] = []
+    completed_count = 0
+    failed_count = 0
+    if isinstance(output_records, list):
+        for raw_record in output_records:
+            if not isinstance(raw_record, dict):
+                normalized_outputs.append(raw_record)
+                continue
+            record = dict(raw_record)
+            status = str(record.get("status") or "")
+            if status in {"running", "queued", "waiting", ""}:
+                record["status"] = "failed"
+                record.setdefault("error", message)
+            if record.get("status") == "completed":
+                completed_count += 1
+            elif record.get("status") == "failed":
+                failed_count += 1
+            normalized_outputs.append(record)
+    total_count = _positive_int(metadata.get("total_count")) or _positive_int((metadata.get("params") or {}).get("n")) or 1
+    failed_count += max(0, total_count - completed_count - failed_count)
     updated = dict(metadata)
     updated.update(
         {
@@ -194,8 +215,12 @@ def _materialize_orphaned_running_failure(
             "updated_at": interrupted_at,
             "error": message,
             "last_error": message,
+            "generated_count": completed_count,
+            "failed_count": failed_count,
         }
     )
+    if isinstance(output_records, list):
+        updated["outputs"] = normalized_outputs
     updated.pop("request", None)
     storage.write_metadata(task_id, updated)
     return updated

@@ -34,6 +34,65 @@ const closeArchiveModal = (...args: any[]) => legacyMethod("closeArchiveModal", 
 let taskListControlsInitialized = false;
 let taskListControlEventsBound = false;
 
+function taskFilterControls() {
+  return [els.taskRatioFilter, els.taskOrientationFilter, els.taskPromptFidelityFilter, els.taskResolutionFilter].filter(Boolean);
+}
+
+function activeTaskFilterCount() {
+  return taskFilterControls().filter((element: any) => Boolean(element.value)).length;
+}
+
+function setTaskFilterPopoverOpen(open: boolean) {
+  if (!els.taskFilterPopover || !els.taskFilterButton) return;
+  els.taskFilterPopover.hidden = !open;
+  els.taskFilterButton.setAttribute("aria-expanded", open ? "true" : "false");
+  els.taskFilterButton.classList.toggle("is-open", open);
+}
+
+function toggleTaskFilterPopover() {
+  setTaskFilterPopoverOpen(Boolean(els.taskFilterPopover?.hidden));
+}
+
+function clearTaskFilters(options: any = {}) {
+  let changed = false;
+  taskFilterControls().forEach((element: any) => {
+    if (element.value) {
+      element.value = "";
+      changed = true;
+    }
+  });
+  updateTaskFilterSummary();
+  if (changed && options.render !== false) {
+    renderTasks();
+  }
+}
+
+function updateTaskFilterSummary() {
+  const activeCount = activeTaskFilterCount();
+  if (els.taskFilterActiveCount) {
+    els.taskFilterActiveCount.hidden = activeCount === 0;
+    els.taskFilterActiveCount.textContent = activeCount ? String(activeCount) : "";
+  }
+  els.taskFilterButton?.classList.toggle("has-active-filters", activeCount > 0);
+  if (els.taskFilterClearButton) {
+    els.taskFilterClearButton.disabled = activeCount === 0;
+  }
+}
+
+function handleTaskFilterDocumentClick(event: any) {
+  const target = event.target as Node | null;
+  const root = els.taskFilterButton?.closest(".sidebar-search") || els.taskFilterPopover;
+  if (!target || root?.contains(target)) return;
+  setTaskFilterPopoverOpen(false);
+}
+
+function handleTaskFilterKeydown(event: any) {
+  if (event.key !== "Escape" || els.taskFilterPopover?.hidden) return;
+  event.preventDefault();
+  setTaskFilterPopoverOpen(false);
+  els.taskFilterButton?.focus?.();
+}
+
 function bindTaskListControlEvents() {
   if (taskListControlEventsBound) return;
   taskListControlEventsBound = true;
@@ -47,11 +106,17 @@ function bindTaskListControlEvents() {
   els.batchDeleteButton?.addEventListener("click", openBatchDeleteConfirm);
   els.batchCancelButton?.addEventListener("click", () => toggleBatchMode(false));
   els.taskSearch.addEventListener("input", handleTaskSearchInput);
-  [els.taskRatioFilter, els.taskOrientationFilter, els.taskPromptFidelityFilter, els.taskResolutionFilter]
-    .filter(Boolean)
-    .forEach((element: any) => {
-      element.addEventListener("change", renderTasks);
+  els.taskFilterButton?.addEventListener("click", toggleTaskFilterPopover);
+  els.taskFilterClearButton?.addEventListener("click", () => clearTaskFilters());
+  document.addEventListener("click", handleTaskFilterDocumentClick);
+  document.addEventListener("keydown", handleTaskFilterKeydown);
+  taskFilterControls().forEach((element: any) => {
+    element.addEventListener("change", () => {
+      updateTaskFilterSummary();
+      renderTasks();
     });
+  });
+  updateTaskFilterSummary();
   bindTaskListEvents();
 }
 
@@ -116,6 +181,17 @@ function handleTaskListClick(event: any) {
     return;
   }
 
+  const activeGroupToggle = event.target.closest("[data-active-task-group-toggle]");
+  if (activeGroupToggle) {
+    event.stopPropagation();
+    const previousLayout = captureTaskHistoryLayout();
+    state.activeTaskGroupCollapsed = !state.activeTaskGroupCollapsed;
+    state.tasksRenderKey = null;
+    renderTasks();
+    animateTaskHistoryLayout(previousLayout);
+    return;
+  }
+
   const archiveButton = event.target.closest("[data-archive-task-id]");
   if (archiveButton) {
     event.stopPropagation();
@@ -166,6 +242,9 @@ export function initTaskListControlsFeature() {
   if (taskListControlsInitialized) return;
   taskListControlsInitialized = true;
   Object.assign(getLegacyBridge().methods, {
+    updateTaskFilterSummary,
+    setTaskFilterPopoverOpen,
+    clearTaskFilters,
     bindTaskListControlEvents,
     bindTaskListEvents,
     handleTaskListClick,

@@ -135,6 +135,39 @@ class WebUIQueueTests(unittest.TestCase):
                 self.assertFalse(restarted_worker.done())
 
         self.assertEqual(response.status_code, 200)
+
+    def test_queue_event_embeds_finished_tasks_for_terminal_realtime_update(self) -> None:
+        from codex_image.webui.app import create_app
+        from codex_image.webui.events import queue_event, task_events
+
+        task_id = "20260630101010-timeout"
+        with tempfile.TemporaryDirectory() as tmp:
+            app = create_app(output_root=Path(tmp), client_factory=lambda: FakeImageClient(), auth_checker=lambda: True, auto_start_queue=False)
+            app.state.storage.write_metadata(
+                task_id,
+                {
+                    "task_id": task_id,
+                    "created_at": "2026-06-30T10:10:10+00:00",
+                    "updated_at": "2026-06-30T10:20:10+00:00",
+                    "status": "failed",
+                    "prompt": "timeout task",
+                    "size": "1024x1024",
+                    "error": "Image request timed out after 600s",
+                },
+            )
+
+            finished_events = task_events(app.state.ctx, {task_id})
+            payload = queue_event(
+                {"waiting": [], "running": [], "summary": {"waiting_count": 0, "running_count": 0, "channel_count": 1}},
+                finished_events,
+            )
+
+        self.assertEqual(payload["type"], "queue")
+        self.assertEqual(payload["queue"]["summary"]["running_count"], 0)
+        self.assertEqual(payload["tasks"][0]["task_id"], task_id)
+        self.assertEqual(payload["tasks"][0]["status"], "failed")
+        self.assertIn("timed out", payload["tasks"][0]["error"])
+
     def test_create_app_uses_sqlite_queue_storage_by_default(self) -> None:
         from codex_image.webui.app import create_app
         from codex_image.webui.storage import SQLiteQueueStorage

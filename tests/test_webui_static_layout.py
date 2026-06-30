@@ -135,8 +135,8 @@ class WebUIStaticLayoutTests(WebUIStaticTestCase):
         script = self._frontend_script_source()
         styles = Path("codex_image/webui/static/styles.css").read_text(encoding="utf-8")
 
-        self.assertIn('/static/app.js?v=runtime-368', html)
-        self.assertIn('/static/styles.css?v=runtime-368', html)
+        self.assertIn('/static/app.js?v=runtime-400', html)
+        self.assertIn('/static/styles.css?v=runtime-400', html)
         self.assertIn('id="recentAssetDock"', html)
         self.assertRegex(html, r'class="image-input-footer"[\s\S]*id="recentAssetDock"[\s\S]*id="recentAssetList"')
         self.assertRegex(html, r'id="recentAssetDock"[\s\S]*id="quickGalleryDock"[\s\S]*id="galleryManagePanel"')
@@ -465,6 +465,18 @@ class WebUIStaticLayoutTests(WebUIStaticTestCase):
             "renderAuthSource",
         ]:
             self._assert_bootstrap_proxy(legacy_source, function_name)
+
+    def test_api_settings_refresh_updates_top_auth_source_summary(self) -> None:
+        provider_source = Path("codex_image/webui/frontend/src/api-provider-settings.ts").read_text(encoding="utf-8")
+        refresh_body = provider_source[
+            provider_source.index("export async function refreshApiSettings"):
+            provider_source.index("export function populateApiSettingsForm")
+        ]
+
+        self.assertIn("state.apiSettings = mergeApiProviderKeys(data.settings || {})", refresh_body)
+        self.assertIn("populateApiSettingsForm();", refresh_body)
+        self.assertIn("renderAuthSourceAfterProviderChange();", refresh_body)
+
     def test_account_quota_feature_is_removed_from_typescript_contract(self) -> None:
         legacy_source = self._bootstrap_source()
         main_source = Path("codex_image/webui/frontend/src/main.ts").read_text(encoding="utf-8")
@@ -666,12 +678,16 @@ class WebUIStaticLayoutTests(WebUIStaticTestCase):
 
         self.assertNotIn('id="settingsButton"', html)
         self.assertNotIn("存储设置</button>", html)
-        self.assertRegex(
-            html,
-            r'<div class="sidebar-footer">\s*<div id="batchToolbar" class="batch-toolbar hidden"[\s\S]*?<div class="footer-actions">',
-        )
+        self.assertRegex(html, r'<div class="task-history-tools">\s*<div id="statusText" class="status-text"')
+        self.assertRegex(html, r'<div class="task-history-tools">[\s\S]*id="batchManageButton"')
+        self.assertRegex(html, r'<div id="batchToolbar" class="batch-toolbar hidden"')
+        self.assertRegex(html, r'<div class="sidebar-footer">\s*<div class="sidebar-api-status-holder"')
+        self.assertNotIn('class="footer-actions"', html)
+        self.assertNotIn('class="api-status-bar"', html)
         self.assertRegex(styles, r"\.sidebar-footer\s*\{[^}]*align-items:\s*center")
         self.assertRegex(styles, r"\.sidebar-footer\s*\{[^}]*text-align:\s*center")
+        self.assertRegex(styles, r"\.task-history-tools\s*\{[^}]*grid-template-columns:\s*minmax\(0,\s*1fr\)\s+auto")
+        self.assertRegex(styles, r"\.task-history-batch-button\s*\{[^}]*min-height:\s*30px")
         self.assertRegex(styles, r"\.status-text\s*\{[^}]*width:\s*100%")
         self.assertRegex(styles, r"\.status-text\s*\{[^}]*max-width:\s*100%")
         self.assertRegex(styles, r"\.status-text\s*\{[^}]*overflow-wrap:\s*anywhere")
@@ -679,11 +695,10 @@ class WebUIStaticLayoutTests(WebUIStaticTestCase):
         self.assertRegex(styles, r"\.status-text\s*\{[^}]*display:\s*-webkit-box")
         self.assertRegex(styles, r"\.status-text\s*\{[^}]*-webkit-line-clamp:\s*3")
         self.assertRegex(styles, r"\.status-text\s*\{[^}]*max-height:\s*4\.5em")
-        self.assertRegex(styles, r"\.footer-actions\s*\{[^}]*justify-content:\s*center")
-        self.assertRegex(styles, r"\.footer-actions\s*\{[^}]*flex-wrap:\s*wrap")
-        self.assertRegex(styles, r"\.api-status-bar\s*\{[^}]*display:\s*inline-flex")
-        self.assertRegex(styles, r"\.api-status-bar\s*\{[^}]*width:\s*fit-content")
-        self.assertRegex(styles, r"\.api-status-bar\s*\{[^}]*border-radius:\s*999px")
+        self.assertRegex(styles, r"\.task-history-tools\s+\.status-text\s*\{[^}]*-webkit-line-clamp:\s*1")
+        self.assertRegex(styles, r"\.sidebar-api-status-holder\s*\{[^}]*display:\s*none")
+        self.assertNotIn(".footer-actions", styles)
+        self.assertNotIn(".api-status-bar", styles)
         self.assertRegex(styles, r"\.version-info\s*\{[^}]*text-align:\s*center")
         self.assertRegex(styles, r"\.version-info\s*\{[^}]*font-size:\s*11px")
         self.assertIn('id="versionInfo"', html)
@@ -718,23 +733,11 @@ class WebUIStaticLayoutTests(WebUIStaticTestCase):
         )
         self.assertRegex(
             styles,
-            r"@media \(max-height:\s*1080px\) and \(min-width:\s*1024px\)\s*\{[\s\S]*\.sidebar-footer\s*\{[^}]*gap:\s*6px",
+            r"@media \(max-height:\s*1080px\) and \(min-width:\s*1024px\)\s*\{[\s\S]*\.sidebar-footer\s*\{[^}]*gap:\s*4px",
         )
         self.assertRegex(
             styles,
-            r"@media \(max-height:\s*1080px\) and \(min-width:\s*1024px\)\s*\{[\s\S]*\.footer-actions\s*\{[^}]*display:\s*grid",
-        )
-        self.assertRegex(
-            styles,
-            r"@media \(max-height:\s*1080px\) and \(min-width:\s*1024px\)\s*\{[\s\S]*\.footer-actions\s+\.ghost-button\s*\{[^}]*height:\s*28px",
-        )
-        self.assertRegex(
-            styles,
-            r"@media \(max-height:\s*1080px\) and \(min-width:\s*1024px\)\s*\{[\s\S]*\.version-info\s*\{[^}]*display:\s*none",
-        )
-        self.assertRegex(
-            styles,
-            r"@media \(max-height:\s*1080px\) and \(min-width:\s*1024px\)\s*\{[\s\S]*\.version-info\.has-update\s*\{[^}]*display:\s*inline-flex",
+            r"@media \(max-height:\s*1080px\) and \(min-width:\s*1024px\)\s*\{[\s\S]*\.version-info\s*\{[^}]*display:\s*inline-flex",
         )
         self.assertRegex(
             styles,
@@ -819,18 +822,43 @@ class WebUIStaticLayoutTests(WebUIStaticTestCase):
 
         self.assertIn('<aside id="sidebar" class="sidebar">', html)
         self.assertIn('id="sidebarResizeHandle"', html)
+        self.assertIn('id="sidebarResizeShield"', html)
+        self.assertIn('class="sidebar-resize-shield"', html)
         self.assertIn('role="separator"', html)
         self.assertIn('aria-label="调整侧栏宽度"', html)
         self.assertIn("sidebar: document.querySelector(\"#sidebar\")", script)
         self.assertIn("sidebarResizeHandle: document.querySelector(\"#sidebarResizeHandle\")", script)
+        self.assertIn("sidebarResizeShield: document.querySelector(\"#sidebarResizeShield\")", script)
         self.assertIn("SIDEBAR_WIDTH_STORAGE_KEY", script)
         self.assertIn("restoreSidebarWidth", script)
+        self.assertIn("function sidebarWidthFromCss()", script)
+        self.assertIn("function currentSidebarWidth()", script)
         self.assertIn("startSidebarResize", script)
+        self.assertIn("scheduleSidebarResizeWidth", script)
+        self.assertIn("flushSidebarResizeWidth", script)
+        self.assertIn("window.requestAnimationFrame(() =>", script)
+        self.assertIn("syncPreviewHeight: false", script)
+        self.assertIn("const currentWidth = currentSidebarWidth();", script)
+        self.assertIn('(els.sidebar || document.documentElement).style.setProperty("--sidebar-width"', script)
+        self.assertNotIn('document.documentElement.style.setProperty("--sidebar-width"', script)
+        self.assertIn("const widthOwner = els.sidebar || document.documentElement;", script)
+        self.assertIn("els.sidebarResizeShield.hidden = false;", script)
+        self.assertIn("els.sidebarResizeShield.hidden = true;", script)
+        self.assertNotIn('document.body.classList.add("sidebar-resizing")', script)
+        self.assertNotIn('document.body.classList.remove("sidebar-resizing")', script)
+        self.assertIn("if (state.sidebarResize) {\n    return;\n  }", script)
+        self.assertIn("function syncPreviewPanelHeight() {\n  if (state.sidebarResize) return;", script)
+        self.assertLess(
+            script.index("state.sidebarResize = null;", script.index("function finishSidebarResize")),
+            script.index("flushSidebarResizeWidth(nextWidth);", script.index("function finishSidebarResize")),
+        )
         self.assertIn("localStorage.setItem(SIDEBAR_WIDTH_STORAGE_KEY", script)
         self.assertRegex(styles, r":root\s*\{[^}]*--sidebar-min-width:\s*280px")
         self.assertRegex(styles, r":root\s*\{[^}]*--sidebar-max-width:\s*520px")
         self.assertRegex(styles, r"\.sidebar\s*\{[^}]*position:\s*relative")
         self.assertRegex(styles, r"\.sidebar-resize-handle\s*\{[^}]*cursor:\s*col-resize")
+        self.assertRegex(styles, r"\.sidebar-resize-shield\s*\{[^}]*position:\s*fixed")
+        self.assertRegex(styles, r"\.sidebar-resize-shield\s*\{[^}]*cursor:\s*col-resize")
     def test_webui_brand_name_is_consistent_across_launch_surfaces(self) -> None:
         app_source = Path("codex_image/webui/app.py").read_text(encoding="utf-8")
         launcher_sources = [
@@ -999,7 +1027,8 @@ class WebUIStaticLayoutTests(WebUIStaticTestCase):
         self.assertRegex(styles, r"\.image-input-workspace\s*\{[^}]*--image-input-action-height:\s*40px")
         self.assertRegex(styles, r"\.image-input-workspace\s*\{[^}]*--image-input-thumb-size:\s*116px")
         self.assertRegex(styles, r"\.image-input-workspace\s*\{[^}]*--quick-gallery-height:\s*var\(--image-input-main-height\)")
-        self.assertRegex(styles, r"@container\s*\(max-width:\s*620px\)\s*\{[\s\S]*\.image-input-workspace\s*\{[^}]*grid-template-columns:\s*1fr")
+        self.assertRegex(styles, r"@container\s*\(max-width:\s*520px\)\s*\{[\s\S]*\.image-input-workspace\s*\{[^}]*grid-template-columns:\s*1fr")
+        self.assertNotIn("@container (max-width: 620px)", styles)
         self.assertRegex(styles, r"\.image-input-main\s*\{[^}]*border:\s*1px dashed color-mix\(in srgb, var\(--text-secondary\) 36%, var\(--line\)\)")
         self.assertRegex(styles, r"\.image-input-main\s*\{[^}]*height:\s*var\(--image-input-main-height\)")
         self.assertRegex(styles, r"\.image-input-left\s*\{[^}]*display:\s*flex")
@@ -1333,36 +1362,36 @@ class WebUIStaticLayoutTests(WebUIStaticTestCase):
         styles = Path("codex_image/webui/static/styles.css").read_text(encoding="utf-8")
 
         self.assertIn(
-            "@media (max-height: 1080px) and (min-width: 1024px) and (max-width: 1500px)",
+            "@media (max-height: 1080px) and (min-width: 1024px) and (max-width: 1560px)",
             styles,
         )
         self.assertRegex(
             styles,
-            r"@media \(max-height:\s*1080px\) and \(min-width:\s*1024px\) and \(max-width:\s*1500px\)\s*\{[\s\S]*\.dashboard\s*\{[^}]*grid-template-columns:\s*minmax\(600px,\s*1\.08fr\)\s+minmax\(400px,\s*0\.92fr\)",
+            r"@media \(max-height:\s*1080px\) and \(min-width:\s*1024px\) and \(max-width:\s*1560px\)\s*\{[\s\S]*\.dashboard\s*\{[^}]*grid-template-columns:\s*minmax\(600px,\s*1\.08fr\)\s+minmax\(400px,\s*0\.92fr\)",
         )
         self.assertRegex(
             styles,
-            r"@media \(max-height:\s*1080px\) and \(min-width:\s*1024px\) and \(max-width:\s*1500px\)\s*\{[\s\S]*\.controls-col\s+\.image-input-workspace\s*\{[^}]*--quick-gallery-column-width:\s*132px",
+            r"@media \(max-height:\s*1080px\) and \(min-width:\s*1024px\) and \(max-width:\s*1560px\)\s*\{[\s\S]*\.controls-col\s+\.image-input-workspace\s*\{[^}]*--quick-gallery-column-width:\s*132px",
         )
         self.assertRegex(
             styles,
-            r"@media \(max-height:\s*1080px\) and \(min-width:\s*1024px\) and \(max-width:\s*1500px\)\s*\{[\s\S]*\.controls-col\s+\.image-input-workspace\s*\{[^}]*grid-template-columns:\s*minmax\(0,\s*1fr\)\s+var\(--quick-gallery-column-width\)",
+            r"@media \(max-height:\s*1080px\) and \(min-width:\s*1024px\) and \(max-width:\s*1560px\)\s*\{[\s\S]*\.controls-col\s+\.image-input-workspace\s*\{[^}]*grid-template-columns:\s*minmax\(0,\s*1fr\)\s+var\(--quick-gallery-column-width\)",
         )
         self.assertRegex(
             styles,
-            r"@media \(max-height:\s*1080px\) and \(min-width:\s*1024px\) and \(max-width:\s*1500px\)\s*\{[\s\S]*\.controls-col\s+\.image-input-workspace\s*\{[^}]*grid-template-rows:\s*none",
+            r"@media \(max-height:\s*1080px\) and \(min-width:\s*1024px\) and \(max-width:\s*1560px\)\s*\{[\s\S]*\.controls-col\s+\.image-input-workspace\s*\{[^}]*grid-template-rows:\s*none",
         )
         self.assertRegex(
             styles,
-            r"@media \(max-height:\s*1080px\) and \(min-width:\s*1024px\) and \(max-width:\s*1500px\)\s*\{[\s\S]*\.controls-col\s+\.image-input-left,\s*\.controls-col\s+\.image-gallery-column\s*\{[^}]*height:\s*var\(--image-input-total-height\)",
+            r"@media \(max-height:\s*1080px\) and \(min-width:\s*1024px\) and \(max-width:\s*1560px\)\s*\{[\s\S]*\.controls-col\s+\.image-input-left,\s*\.controls-col\s+\.image-gallery-column\s*\{[^}]*height:\s*var\(--image-input-total-height\)",
         )
         self.assertRegex(
             styles,
-            r"@media \(max-height:\s*1080px\) and \(min-width:\s*1024px\) and \(max-width:\s*1500px\)\s*\{[\s\S]*\.controls-col\s+\.quick-gallery-dock,\s*\.controls-col\s+\.quick-gallery-list,\s*\.controls-col\s+\.quick-gallery-rail\s*\{[^}]*height:\s*var\(--quick-gallery-height\)",
+            r"@media \(max-height:\s*1080px\) and \(min-width:\s*1024px\) and \(max-width:\s*1560px\)\s*\{[\s\S]*\.controls-col\s+\.quick-gallery-dock,\s*\.controls-col\s+\.quick-gallery-list,\s*\.controls-col\s+\.quick-gallery-rail\s*\{[^}]*height:\s*var\(--quick-gallery-height\)",
         )
         self.assertRegex(
             styles,
-            r"@media \(max-height:\s*1080px\) and \(min-width:\s*1024px\) and \(max-width:\s*1500px\)\s*\{[\s\S]*\.controls-col\s+\.prompt-panel\s*\{[^}]*--prompt-action-column-width:\s*132px",
+            r"@media \(max-height:\s*1080px\) and \(min-width:\s*1024px\) and \(max-width:\s*1560px\)\s*\{[\s\S]*\.controls-col\s+\.prompt-panel\s*\{[^}]*--prompt-action-column-width:\s*132px",
         )
     def test_gallery_categories_are_managed_from_server_in_management_sheet(self) -> None:
         html = Path("codex_image/webui/static/index.html").read_text(encoding="utf-8")
@@ -1688,6 +1717,7 @@ class WebUIStaticLayoutTests(WebUIStaticTestCase):
     def test_api_source_switcher_and_system_settings_modal_exist(self) -> None:
         html = Path("codex_image/webui/static/index.html").read_text(encoding="utf-8")
         script = self._frontend_script_source()
+        event_source = Path("codex_image/webui/frontend/src/event-bindings.ts").read_text(encoding="utf-8")
         styles = Path("codex_image/webui/static/styles.css").read_text(encoding="utf-8")
 
         self.assertIn('data-auth-source="api"', html)
@@ -1717,6 +1747,11 @@ class WebUIStaticLayoutTests(WebUIStaticTestCase):
         self.assertIn('class="settings-action-status language-settings-status" data-i18n="languageSettings.instantStatus"', html)
         self.assertNotIn('id="apiSettingsStatus" class="api-settings-feedback" data-i18n="apiSettings.status"', html)
         self.assertNotIn('id="codexSettingsStatus" class="api-settings-feedback" data-i18n="codexSettings.status"', html)
+        self.assertIn("let systemSettingsBackdropPointerDown = false", event_source)
+        self.assertIn('systemSettingsModal?.addEventListener("pointerdown"', event_source)
+        self.assertIn("systemSettingsBackdropPointerDown = event.target === els.systemSettingsModal", event_source)
+        self.assertIn("if (event.target === els.systemSettingsModal && systemSettingsBackdropPointerDown)", event_source)
+        self.assertNotIn('if (event.target === els.systemSettingsModal) call(methods, "closeSystemSettingsModal")', event_source)
         self.assertLess(html.index('id="systemSettingsApiTab"'), html.index('id="systemSettingsCodexTab"'))
         self.assertLess(html.index('id="systemSettingsCodexTab"'), html.index('id="systemSettingsLanguageTab"'))
         self.assertLess(html.index('id="systemSettingsLanguageTab"'), html.index('id="systemSettingsStorageTab"'))
@@ -2764,11 +2799,14 @@ class WebUIStaticLayoutTests(WebUIStaticTestCase):
         self.assertRegex(styles, r"\.preview-grid\s*\{[^}]*place-items:\s*center")
         self.assertRegex(styles, r"\.preview-grid\s*\{[^}]*overflow:\s*hidden")
         self.assertRegex(styles, r"\.preview-grid:not\(\.multi-output\)\s+\.preview-card\s*\{[^}]*height:\s*100%")
+        self.assertRegex(styles, r"\.preview-grid:not\(\.multi-output\)\s+\.preview-card\s*\{[^}]*border-color:\s*transparent")
+        self.assertRegex(styles, r"\.preview-grid:not\(\.multi-output\)\s+\.preview-card\s*\{[^}]*background:\s*transparent")
         self.assertRegex(styles, r"\.preview-grid:not\(\.multi-output\)\s+\.preview-card img\s*\{[^}]*position:\s*absolute")
         self.assertRegex(styles, r"\.preview-grid:not\(\.multi-output\)\s+\.preview-card img\s*\{[^}]*inset:\s*0")
         self.assertRegex(styles, r"\.preview-grid:not\(\.multi-output\)\s+\.preview-card img\s*\{[^}]*width:\s*100%")
         self.assertRegex(styles, r"\.preview-grid:not\(\.multi-output\)\s+\.preview-card img\s*\{[^}]*height:\s*100%")
         self.assertRegex(styles, r"\.preview-card\s*\{[^}]*max-height:\s*100%")
+        self.assertRegex(styles, r"\.preview-card\s*\{[^}]*border:\s*1px solid transparent")
         self.assertRegex(styles, r"\.preview-card img\s*\{[^}]*max-width:\s*100%")
         self.assertRegex(styles, r"\.preview-card img\s*\{[^}]*max-height:\s*100%")
         self.assertNotIn(".preview-col > .panel:last-child", styles)
@@ -2841,13 +2879,13 @@ class WebUIStaticLayoutTests(WebUIStaticTestCase):
         script = self._frontend_script_source()
         styles = Path("codex_image/webui/static/styles.css").read_text(encoding="utf-8")
 
-        self.assertIn('/static/app.js?v=runtime-368', html)
-        self.assertIn('/static/styles.css?v=runtime-368', html)
+        self.assertIn('/static/app.js?v=runtime-400', html)
+        self.assertIn('/static/styles.css?v=runtime-400', html)
         self.assertIn('id="pasteClipboardButton"', html)
         self.assertIn('id="statusText"', html)
         self.assertRegex(
             html,
-            r'<div id="statusText" class="status-text" aria-live="polite" data-i18n="status\.waiting">等待任务</div>',
+            r'<div class="task-history-tools">\s*<div id="statusText" class="status-text" aria-live="polite" data-i18n="status\.waiting">等待任务</div>',
         )
         self.assertRegex(
             html,
@@ -3286,8 +3324,8 @@ class WebUIStaticLayoutTests(WebUIStaticTestCase):
         script = self._frontend_script_source()
         styles = Path("codex_image/webui/static/styles.css").read_text(encoding="utf-8")
 
-        self.assertIn("/static/app.js?v=runtime-368", html)
-        self.assertIn("/static/styles.css?v=runtime-368", html)
+        self.assertIn("/static/app.js?v=runtime-400", html)
+        self.assertIn("/static/styles.css?v=runtime-400", html)
         self.assertIn('const THEME_STORAGE_KEY = "codex-image-theme-preference";', script)
         self.assertIn('themePreference: "system"', script)
         self.assertIn('call(methods, "restoreThemePreference")', script)

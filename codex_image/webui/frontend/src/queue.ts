@@ -93,13 +93,22 @@ export async function handleRealtimePayload(payload: RealtimePayload | null | un
   }
   if (payload?.type === "queue") {
     applyQueueState(payload.queue);
+    await applyRealtimeTaskPayloads(payload.tasks || []);
     applyQueueTasks(payload.queue);
     return;
   }
   if (payload?.type === "task") {
-    const previousTask = state.tasks.find((item) => String(item.task_id) === String(payload.task?.task_id));
-    bridge.methods.notifyTaskUpdate?.(previousTask, payload.task);
-    bridge.methods.applyTaskUpdate(payload.task);
+    await applyRealtimeTaskPayloads(payload.task ? [payload.task] : []);
+  }
+}
+
+async function applyRealtimeTaskPayloads(tasks: WebUITask[]): Promise<void> {
+  const bridge = getLegacyBridge();
+  const state = bridge.state;
+  for (const task of tasks) {
+    const previousTask = state.tasks.find((item) => String(item.task_id) === String(task?.task_id));
+    bridge.methods.notifyTaskUpdate?.(previousTask, task);
+    await bridge.methods.applyTaskUpdate(task);
   }
 }
 

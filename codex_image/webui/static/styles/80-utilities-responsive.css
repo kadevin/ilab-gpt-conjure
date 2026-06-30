@@ -35,26 +35,13 @@ button:disabled {
 @media (max-height: 1080px) and (min-width: 1024px) {
   .sidebar-footer {
     padding: 8px 12px;
-    gap: 6px;
-  }
-
-  .footer-actions {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    width: 100%;
-    gap: 6px;
-  }
-
-  .footer-actions .ghost-button {
-    width: 100%;
-    height: 28px;
-    padding: 0 6px;
-    font-size: 12px;
-    white-space: nowrap;
+    gap: 4px;
   }
 
   .status-text:not(.error) {
-    display: none;
+    -webkit-line-clamp: 1;
+    max-height: 1.45em;
+    font-size: 11px;
   }
 
   .status-text.error {
@@ -63,26 +50,12 @@ button:disabled {
     font-size: 11px;
   }
 
-  .api-status-bar {
-    min-height: 24px;
-    padding: 4px 10px;
-    font-size: 11px;
-  }
-
   .version-info {
-    display: none;
-  }
-
-  .version-info.has-update {
     display: inline-flex;
     width: auto;
-    min-height: 22px;
+    min-height: 24px;
     padding: 2px 8px;
     margin: 0 auto;
-  }
-
-  .version-info.has-update .version-label {
-    display: none;
   }
 
   .dashboard {
@@ -642,7 +615,7 @@ button:disabled {
   }
 }
 
-@container (max-width: 620px) {
+@container (max-width: 520px) {
   .image-input-workspace {
     grid-template-columns: 1fr;
   }
@@ -664,7 +637,7 @@ button:disabled {
   }
 }
 
-@media (max-height: 1080px) and (min-width: 1024px) and (max-width: 1500px) {
+@media (max-height: 1080px) and (min-width: 1024px) and (max-width: 1560px) {
   .dashboard {
     grid-template-columns: minmax(600px, 1.08fr) minmax(400px, 0.92fr);
     padding: 12px;
@@ -735,7 +708,6 @@ button:disabled {
     display: none;
   }
   .sidebar-search,
-  .sidebar-filter-panel,
   .task-history-anchor-rail,
   .task-history-library-slot {
     display: none;

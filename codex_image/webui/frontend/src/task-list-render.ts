@@ -34,6 +34,8 @@ function taskArchived(...args: any[]) { return legacyMethod("taskArchived", ...a
 function renderBatchToolbar(...args: any[]) { return legacyMethod("renderBatchToolbar", ...args); }
 function updateTaskElapsedDisplays(...args: any[]) { return legacyMethod("updateTaskElapsedDisplays", ...args); }
 function taskBackendLabel(...args: any[]) { return legacyMethod("taskBackendLabel", ...args); }
+function taskApiProviderId(...args: any[]) { return legacyMethod("taskApiProviderId", ...args); }
+function taskApiProviderLabel(...args: any[]) { return legacyMethod("taskApiProviderLabel", ...args); }
 function formatTaskStatus(...args: any[]) { return legacyMethod("formatTaskStatus", ...args); }
 function ensureExpandedTaskGroupKey(...args: any[]) { return legacyMethod("ensureExpandedTaskGroupKey", ...args); }
 function renderTaskHistoryAnchors(...args: any[]) { return legacyMethod("renderTaskHistoryAnchors", ...args); }
@@ -51,9 +53,11 @@ const taskOutputUrls = (...args: any[]) => legacyMethod("taskOutputUrls", ...arg
 const taskImageBlockStates = (...args: any[]) => legacyMethod("taskImageBlockStates", ...args);
 const compressTaskImageBlockStates = (...args: any[]) => legacyMethod("compressTaskImageBlockStates", ...args);
 const taskImageStatusCounts = (...args: any[]) => legacyMethod("taskImageStatusCounts", ...args);
-const taskFailureMessage = (...args: any[]) => legacyMethod("taskFailureMessage", ...args);
 const taskRetryStateText = (...args: any[]) => legacyMethod("taskRetryStateText", ...args);
+const taskCardRetryStateText = (...args: any[]) => legacyMethod("taskCardRetryStateText", ...args);
+const taskDurationText = (...args: any[]) => legacyMethod("taskDurationText", ...args);
 const taskRuntimeText = (...args: any[]) => legacyMethod("taskRuntimeText", ...args);
+const taskCompletionTimestampText = (...args: any[]) => legacyMethod("taskCompletionTimestampText", ...args);
 const taskCompletionTimestampTitle = (...args: any[]) => legacyMethod("taskCompletionTimestampTitle", ...args);
 const timestampMs = (...args: any[]) => legacyMethod("timestampMs", ...args);
 
@@ -373,6 +377,9 @@ function clearTaskListFiltersForActiveGroup() {
         changed = true;
       }
     });
+  if (changed) {
+    getLegacyBridge().methods.updateTaskFilterSummary?.();
+  }
   return changed;
 }
 
@@ -489,27 +496,40 @@ function activeTaskGroupHtml(group: any) {
   const groupKey = escapeHtml(group.key);
   const sections = activeTaskSections(group.tasks || []);
   const dispatchPending = Boolean(legacyMethod("isQueueDispatchPending"));
+  const collapsed = Boolean(state.activeTaskGroupCollapsed);
   const body = [
     activeTaskSectionHtml("running", translate("taskGroup.running"), sections.running),
     activeTaskSectionHtml("waiting", translate("taskGroup.waiting"), sections.waiting),
     !sections.running.length && !sections.waiting.length && dispatchPending ? activeTaskDispatchPendingHtml() : "",
   ].join("");
+  const activeLabel = escapeHtml(group.label);
+  const activeCount = group.tasks.length;
+  const toggleLabel = escapeHtml(formatTranslation(collapsed ? "taskGroup.expand" : "taskGroup.collapse", { label: group.label }));
   return `
-    <section class="task-group task-group-expanded task-group-active" data-task-group="${groupKey}">
-      <div
+    <section class="task-group task-group-expanded task-group-active${collapsed ? " task-active-collapsed" : ""}" data-task-group="${groupKey}">
+      <button
         class="task-group-header task-group-header-split task-active-group-header"
-        role="heading"
-        aria-level="2"
+        type="button"
+        data-active-task-group-toggle="true"
+        aria-expanded="${collapsed ? "false" : "true"}"
+        aria-label="${toggleLabel}"
       >
         <span class="task-group-label-button">
           <span class="task-group-title">
-            <span class="task-group-label">${escapeHtml(group.label)}</span>
+            <span class="task-group-label">${activeLabel}</span>
             <span class="task-group-count-separator" aria-hidden="true"> · </span>
-            <span class="task-group-count">${group.tasks.length}</span>
+            <span class="task-group-count">${activeCount}</span>
           </span>
         </span>
-      </div>
-      <div class="task-group-items task-group-items-expanded">
+        <span class="task-history-anchor-arrow" aria-hidden="true">
+          <span class="task-group-toggle" aria-hidden="true">
+            <svg class="task-group-toggle-icon" viewBox="0 0 12 12" focusable="false">
+              <path d="M4 2.5 8 6 4 9.5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"/>
+            </svg>
+          </span>
+        </span>
+      </button>
+      <div class="task-group-items task-group-items-expanded" data-active-task-group-items aria-hidden="${collapsed ? "true" : "false"}"${collapsed ? " inert" : ""}>
         ${body}
       </div>
     </section>
@@ -681,17 +701,42 @@ function taskCardHtml(task: any) {
   const unreadClass = unread ? " unread" : "";
   const statusClass = task.status ? ` ${escapeHtml(task.status)}` : "";
   const title = escapeHtml(task.prompt || task.mode || "Untitled");
-  const statusLight = taskStatusLightHtml(task);
-  const statusMeta = escapeHtml(taskMetaDetailsText(task));
-  const imageBlocks = taskImageBlocksHtml(task);
-  const imageSummary = escapeHtml(taskImageSummaryText(task));
-  const retryText = taskRetryStateText(task);
-  const runtime = taskRuntimeText(task);
+  const showImageSummary = taskImageSummaryVisible(task);
+  const imageBlocks = showImageSummary ? taskImageBlocksHtml(task) : "";
+  const imageSummary = showImageSummary ? escapeHtml(taskImageSummaryText(task)) : "";
+  const imageSummaryHtml = imageSummary ? `<span class="task-image-summary">${imageSummary}</span>` : "";
+  const retryFullText = taskRetryStateText(task);
+  const retryText = taskCardRetryStateText(task) || retryFullText;
+  const statusLabel = taskStatusLabelHtml(task);
+  const statusMeta = escapeHtml(retryText ? taskMetaDetailsWithCompletionText(task) : taskMetaDetailsText(task));
+  const taskTime = taskCardCompletionTimeText(task);
+  const runtime = taskCardRuntimeText(task);
+  const runtimeFullText = taskRuntimeText(task);
   const completionTitle = taskCompletionTimestampTitle(task);
   const taskId = escapeHtml(task.task_id);
-  const runtimeTitle = completionTitle ? ` title="${escapeHtml(completionTitle)}"` : "";
-  const runtimeHtml = runtime ? `<div class="task-runtime" data-task-runtime-id="${taskId}" data-task-completed-at-id="${taskId}"${runtimeTitle}>${escapeHtml(runtime)}</div>` : "";
-  const retryHtml = retryText ? `<div class="task-retry-state" data-task-retry-id="${taskId}">${escapeHtml(retryText)}</div>` : "";
+  const runtimeTitleText = [runtimeFullText, completionTitle].filter(Boolean).join(" · ");
+  const runtimeTitle = runtimeTitleText ? ` title="${escapeHtml(runtimeTitleText)}"` : "";
+  const runtimeHtml = runtime ? `<span class="task-runtime" data-task-runtime-id="${taskId}" data-task-completed-at-id="${taskId}"${runtimeTitle}>${escapeHtml(runtime)}</span>` : "";
+  const imageRow = showImageSummary ? `
+          <span class="task-image-row">
+            ${imageBlocks}
+            <span class="task-status-row task-status-inline" aria-label="${escapeHtml(taskStatusAccessibleLabel(task))}">
+              ${statusLabel}
+            </span>
+            ${imageSummaryHtml}
+          </span>
+    ` : "";
+  const retryTitle = retryFullText && retryFullText !== retryText ? ` title="${escapeHtml(retryFullText)}"` : "";
+  const retryHtml = retryText ? `<span class="task-retry-state" data-task-retry-id="${taskId}"${retryTitle}>${escapeHtml(retryText)}</span>` : "";
+  const timeHtml = !retryText && taskTime ? `<span class="task-card-time">${escapeHtml(taskTime)}</span>` : "";
+  const detailRightHtml = retryHtml || timeHtml;
+  const detailRowClass = detailRightHtml ? "task-detail-row" : "task-detail-row task-detail-row-meta-only";
+  const detailRow = statusMeta || detailRightHtml ? `
+        <div class="${detailRowClass}">
+          <span class="task-status-meta" data-task-meta-id="${taskId}">${statusMeta}</span>
+          ${detailRightHtml}
+        </div>
+    ` : "";
   const batchSelected = state.batchSelectedTaskIds.includes(String(task.task_id));
   const batchClass = state.batchMode ? " batch-mode" : "";
   const batchSelectedClass = batchSelected ? " batch-selected" : "";
@@ -713,20 +758,15 @@ function taskCardHtml(task: any) {
       ${batchSelect}
       ${image}
       <div class="task-info">
+        <div class="task-meta-row">
+          ${imageRow}
+          ${runtimeHtml}
+        </div>
         <div class="task-title-row">
           ${unreadDot}
           <div class="task-title">${title}</div>
         </div>
-        <div class="task-status-row" aria-label="${escapeHtml(taskStatusAccessibleLabel(task))}">
-          ${statusLight}
-          <span class="task-status-meta">${statusMeta}</span>
-        </div>
-        <div class="task-image-row">
-          ${imageBlocks}
-          <span class="task-image-summary">${imageSummary}</span>
-        </div>
-        ${retryHtml}
-        ${runtimeHtml}
+        ${detailRow}
       </div>
       ${queueActions}
       ${taskActions}
@@ -867,6 +907,7 @@ function taskListRenderKey(tasks: any, query: any, layout: any = {}, filters: an
     activeGroup: activeGroup
       ? [activeGroup.key, activeGroup.label, activeGroup.tasks.length]
       : null,
+    activeTaskGroupCollapsed: Boolean(state.activeTaskGroupCollapsed),
     batchMode: state.batchMode,
     batchSelectedTaskIds: state.batchSelectedTaskIds.map(String).sort(),
     archivedTaskIds: state.tasks.filter(taskArchived).map((task: any) => String(task.task_id)).sort(),
@@ -941,8 +982,8 @@ function taskThumbHtml(task: any, className: any = "task-thumb") {
     const imageToImageLabel = escapeHtml(translate("taskCard.imageToImageThumb"));
     return `
       <div class="${safeClassName} task-thumb-stack" aria-label="${imageToImageLabel}">
-        <img class="task-thumb-reference" src="${escapeHtml(inputPreviewUrl)}" alt="" loading="lazy" decoding="async">
-        <img class="task-thumb-output" src="${escapeHtml(imageUrl)}" alt="" loading="lazy" decoding="async">
+        <img class="task-thumb-reference" src="${escapeHtml(inputPreviewUrl)}" alt="" loading="lazy" decoding="async" draggable="false">
+        <img class="task-thumb-output" src="${escapeHtml(imageUrl)}" alt="" loading="lazy" decoding="async" draggable="false">
         ${loadingSpinner}
       </div>
     `;
@@ -952,7 +993,7 @@ function taskThumbHtml(task: any, className: any = "task-thumb") {
     const textBadge = escapeHtml(translate("taskCard.textBadge"));
     return `
       <div class="${safeClassName} task-thumb-single" aria-label="${textToImageLabel}">
-        <img class="task-thumb-single-image" src="${escapeHtml(imageUrl)}" alt="" loading="lazy" decoding="async">
+        <img class="task-thumb-single-image" src="${escapeHtml(imageUrl)}" alt="" loading="lazy" decoding="async" draggable="false">
         <span class="task-thumb-mode-badge" aria-hidden="true">${textBadge}</span>
       </div>
     `;
@@ -963,23 +1004,10 @@ function taskThumbHtml(task: any, className: any = "task-thumb") {
   return `<div class="${safeClassName} running-thumb"><span></span></div>`;
 }
 
-function taskStatusLightHtml(task: any) {
-  const tone = taskStatusTone(task);
+function taskStatusLabelHtml(task: any) {
   const label = escapeHtml(formatTaskStatus(task) || translate("taskStatus.unknown"));
   const taskId = escapeHtml(task?.task_id || "");
-  return `
-    <span class="task-status-light ${tone}" aria-hidden="true"></span>
-    <span class="task-status-label" data-task-status-id="${taskId}">${label}</span>
-  `;
-}
-
-function taskStatusTone(task: any) {
-  const status = String(task?.status || "");
-  if (["failed", "partial_failed"].includes(status)) return "failed";
-  if (status === "completed") return "completed";
-  if (status === "running") return "running";
-  if (status === "queued" || status === "submitting") return "queued";
-  return "unknown";
+  return `<span class="task-status-label" data-task-status-id="${taskId}">${label}</span>`;
 }
 
 function taskStatusAccessibleLabel(task: any) {
@@ -989,18 +1017,47 @@ function taskStatusAccessibleLabel(task: any) {
 }
 
 function taskMetaDetailsText(task: any) {
-  const failure = taskFailureMessage(task);
-  const retryText = taskRetryStateText(task);
   const size = task.output_size || task.params?.size || "";
-  const backend = taskBackendLabel(task);
-  return [failure, retryText, size, backend].filter(Boolean).join(" · ");
+  const backend = taskCardProviderLabel(task);
+  return [size, backend].filter(Boolean).join(" · ");
+}
+
+function taskMetaDetailsWithCompletionText(task: any) {
+  const statusMeta = taskMetaDetailsText(task);
+  const completion = taskCompletionTimestampText(task);
+  return [statusMeta, completion?.shortText].filter(Boolean).join(" · ");
+}
+
+function taskCardCompletionTimeText(task: any) {
+  const completion = taskCompletionTimestampText(task);
+  return completion?.shortText || "";
+}
+
+function taskCardProviderLabel(task: any) {
+  const providerLabel = String(taskApiProviderLabel(task) || "").trim();
+  const providerId = String(taskApiProviderId(task) || "").trim();
+  if (providerLabel && (!providerId || providerLabel !== providerId)) {
+    const providerIdSuffix = providerId ? `(${providerId})` : "";
+    return providerIdSuffix && providerLabel.endsWith(providerIdSuffix)
+      ? providerLabel.slice(0, -providerIdSuffix.length).trim()
+      : providerLabel;
+  }
+  const backend = String(task?.backend || task?.requested_backend || "").trim();
+  if (backend === "codex_images") return "Codex";
+  if (backend === "codex_responses") return "Responses";
+  if (backend === "openai_responses") return "Responses";
+  return "";
+}
+
+function taskCardRuntimeText(task: any) {
+  return taskDurationText(task);
 }
 
 function taskImageBlocksHtml(task: any) {
   const states = taskImageBlockStates(task);
   const visibleStates = compressTaskImageBlockStates(states);
   const total = states.length;
-  const visibleCount = Math.min(total, 12);
+  const visibleCount = Math.min(total, 4);
   const compressedClass = states.length > visibleStates.length ? " compressed" : "";
   const blocks = visibleStates.map((blockState: any) => `<span class="task-image-block ${blockState}" aria-hidden="true"></span>`).join("");
   return `<div class="task-image-progress${compressedClass}" style="--task-block-count: ${visibleCount}" aria-hidden="true">${blocks}</div>`;
@@ -1009,11 +1066,7 @@ function taskImageBlocksHtml(task: any) {
 function taskImageSummaryText(task: any) {
   const states = taskImageBlockStates(task);
   const counts = taskImageStatusCounts(states);
-  const parts = [
-    formatTranslation("taskCard.count", { count: states.length }),
-    formatTranslation("taskCard.successCount", { count: counts.completed }),
-    formatTranslation("taskCard.failedCount", { count: counts.failed }),
-  ];
+  const parts = [];
   if (counts.running) parts.push(formatTranslation("taskCard.runningCount", { count: counts.running }));
   if (counts.queued || counts.waiting) {
     parts.push(formatTranslation("taskCard.waitingCount", { count: counts.queued + counts.waiting }));
@@ -1021,11 +1074,15 @@ function taskImageSummaryText(task: any) {
   return parts.join(" · ");
 }
 
+function taskImageSummaryVisible(task: any) {
+  void task;
+  return true;
+}
+
 function taskMetaText(task: any) {
-  const failure = taskFailureMessage(task);
-  const status = failure ? `${formatTaskStatus(task)} · ${failure}` : formatTaskStatus(task);
+  const status = formatTaskStatus(task);
   const size = task.output_size || task.params?.size || "";
-  const backend = taskBackendLabel(task);
+  const backend = taskCardProviderLabel(task);
   return [status, size, backend].filter(Boolean).join(" · ");
 }
 
@@ -1061,10 +1118,11 @@ export function initTaskListRenderFeature() {
     taskCardElement,
     updateTaskSelectionVisuals,
     taskThumbHtml,
-    taskStatusLightHtml,
-    taskStatusTone,
+    taskStatusLabelHtml,
     taskStatusAccessibleLabel,
     taskMetaDetailsText,
+    taskCardProviderLabel,
+    taskCardRuntimeText,
     taskImageBlocksHtml,
     taskImageSummaryText,
     taskMetaText,

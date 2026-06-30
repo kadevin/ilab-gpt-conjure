@@ -116,8 +116,15 @@ class TaskStorage:
 
     def delete_task(self, task_id: str) -> None:
         self._validate_task_id(task_id)
-        output_paths = list(self.output_root.rglob(f"{task_id}-image-*")) if self.output_root.exists() else []
         thumbnail_root = self.output_root / "thumbnails"
+        output_paths = []
+        if self.output_root.exists():
+            output_paths = [
+                path for path in self.output_root.rglob(f"{task_id}-*")
+                if path.is_file()
+                and not path.is_relative_to(thumbnail_root)
+                and not path.is_relative_to(self.source_data_root)
+            ]
         thumbnail_paths = list(thumbnail_root.rglob(f"{task_id}-*-thumb.*")) if thumbnail_root.exists() else []
         paths = [
             *self.input_root.glob(f"{task_id}-input-*"),

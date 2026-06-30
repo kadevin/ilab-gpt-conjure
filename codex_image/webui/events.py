@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import json
-from typing import Any
+from typing import Any, Iterable
 
 from .context import WebUIContext
 from .task_metadata import _gallery_item_response, _with_file_urls
@@ -82,3 +82,24 @@ def task_event(ctx: WebUIContext, task_id: str) -> dict[str, Any] | None:
             include_request=False,
         ),
     }
+
+
+def task_events(ctx: WebUIContext, task_ids: Iterable[str]) -> list[dict[str, Any]]:
+    events = []
+    for task_id in sorted({str(task_id) for task_id in task_ids if str(task_id or "")}):
+        payload = task_event(ctx, task_id)
+        if payload is not None:
+            events.append(payload)
+    return events
+
+
+def queue_event(queue: dict[str, Any], finished_task_events: list[dict[str, Any]] | None = None) -> dict[str, Any]:
+    payload: dict[str, Any] = {"type": "queue", "queue": queue}
+    finished_tasks = [
+        event.get("task")
+        for event in (finished_task_events or [])
+        if isinstance(event, dict) and isinstance(event.get("task"), dict)
+    ]
+    if finished_tasks:
+        payload["tasks"] = finished_tasks
+    return payload

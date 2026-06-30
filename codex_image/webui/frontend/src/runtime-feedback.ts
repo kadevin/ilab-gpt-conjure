@@ -16,8 +16,8 @@ const renderPreview = (...args: any[]) => legacyMethod("renderPreview", ...args)
 const revokeTaskUploadPreviewUrls = (...args: any[]) => legacyMethod("revokeTaskUploadPreviewUrls", ...args);
 const taskProgressStartValue = (...args: any[]) => legacyMethod("taskProgressStartValue", ...args);
 const taskStatusAccessibleLabel = (...args: any[]) => legacyMethod("taskStatusAccessibleLabel", ...args);
-const taskMetaText = (...args: any[]) => legacyMethod("taskMetaText", ...args);
-const taskRuntimeText = (...args: any[]) => legacyMethod("taskRuntimeText", ...args);
+const taskMetaDetailsText = (...args: any[]) => legacyMethod("taskMetaDetailsText", ...args);
+const taskCardRuntimeText = (...args: any[]) => legacyMethod("taskCardRuntimeText", ...args);
 const taskRetryStateText = (...args: any[]) => legacyMethod("taskRetryStateText", ...args);
 const timestampMs = (...args: any[]) => legacyMethod("timestampMs", ...args);
 const elapsedSecondsSince = (...args: any[]) => legacyMethod("elapsedSecondsSince", ...args);
@@ -133,10 +133,10 @@ function updateTaskElapsedCard(card: HTMLElement, task: any): void {
   }
 
   const metaElement = card.querySelector("[data-task-meta-id]");
-  if (metaElement) setTextIfChanged(metaElement, taskMetaText(task));
+  if (metaElement) setTextIfChanged(metaElement, taskMetaDetailsText(task));
 
   const runtimeElement = card.querySelector("[data-task-runtime-id]");
-  if (runtimeElement) setTextIfChanged(runtimeElement, taskRuntimeText(task));
+  if (runtimeElement) setTextIfChanged(runtimeElement, taskCardRuntimeText(task));
 
   const retryElement = card.querySelector("[data-task-retry-id]");
   if (retryElement) setTextIfChanged(retryElement, taskRetryStateText(task));

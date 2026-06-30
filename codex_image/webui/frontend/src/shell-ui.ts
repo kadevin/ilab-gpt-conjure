@@ -16,6 +16,8 @@ const els = bridge.els;
 let shellUiInitialized = false;
 let shellUiEventsBound = false;
 let previewPanelHeightFrameId = null;
+let sidebarResizeFrameId = null;
+let sidebarResizePendingWidth = null;
 
 function legacyMethod(name, ...args) {
   const method = getLegacyBridge().methods[name];
@@ -149,20 +151,30 @@ function clampSidebarWidth(value) {
   return Math.min(sidebarMaxWidth(), Math.max(SIDEBAR_MIN_WIDTH, width));
 }
 
+function sidebarWidthFromCss() {
+  const widthOwner = els.sidebar || document.documentElement;
+  const inlineWidth = Number.parseInt(widthOwner.style.getPropertyValue("--sidebar-width") || "", 10);
+  if (!Number.isNaN(inlineWidth)) return clampSidebarWidth(inlineWidth);
+  const tokenWidth = Number.parseInt(getComputedStyle(widthOwner).getPropertyValue("--sidebar-width") || "", 10);
+  return Number.isNaN(tokenWidth) ? null : clampSidebarWidth(tokenWidth);
+}
+
+function currentSidebarWidth() {
+  return sidebarWidthFromCss() ?? SIDEBAR_DEFAULT_WIDTH;
+}
+
 function syncSidebarResizeHandleAria(width = null) {
   const handle = els.sidebarResizeHandle;
   if (!handle) return;
-  const currentWidth = width !== null
-    ? width
-    : Math.round(els.sidebar?.getBoundingClientRect().width || SIDEBAR_DEFAULT_WIDTH);
+  const currentWidth = width !== null ? width : currentSidebarWidth();
   handle.setAttribute("aria-valuemin", String(SIDEBAR_MIN_WIDTH));
   handle.setAttribute("aria-valuemax", String(SIDEBAR_MAX_WIDTH));
   handle.setAttribute("aria-valuenow", String(currentWidth));
 }
 
-function applySidebarWidth(width, { persist = true } = {}) {
+function applySidebarWidth(width, { persist = true, syncPreviewHeight = true } = {}) {
   const nextWidth = clampSidebarWidth(width);
-  document.documentElement.style.setProperty("--sidebar-width", `${nextWidth}px`);
+  (els.sidebar || document.documentElement).style.setProperty("--sidebar-width", `${nextWidth}px`);
   syncSidebarResizeHandleAria(nextWidth);
   if (persist) {
     try {
@@ -171,24 +183,50 @@ function applySidebarWidth(width, { persist = true } = {}) {
       // Browser storage may be unavailable in restricted contexts.
     }
   }
-  schedulePreviewPanelHeightSync();
+  if (syncPreviewHeight) {
+    schedulePreviewPanelHeightSync();
+  }
 }
 
 function resetSidebarWidth() {
   applySidebarWidth(SIDEBAR_DEFAULT_WIDTH);
 }
 
+function scheduleSidebarResizeWidth(width) {
+  sidebarResizePendingWidth = clampSidebarWidth(width);
+  if (sidebarResizeFrameId !== null) return;
+  sidebarResizeFrameId = window.requestAnimationFrame(() => {
+    sidebarResizeFrameId = null;
+    const nextWidth = sidebarResizePendingWidth;
+    sidebarResizePendingWidth = null;
+    if (nextWidth === null) return;
+    applySidebarWidth(nextWidth, { persist: false, syncPreviewHeight: false });
+  });
+}
+
+function flushSidebarResizeWidth(width) {
+  if (sidebarResizeFrameId !== null) {
+    window.cancelAnimationFrame(sidebarResizeFrameId);
+    sidebarResizeFrameId = null;
+  }
+  sidebarResizePendingWidth = null;
+  applySidebarWidth(width, { persist: true, syncPreviewHeight: true });
+}
+
 function startSidebarResize(event) {
   if (!els.sidebar || event.button !== 0) return;
   event.preventDefault();
-  const currentWidth = els.sidebar.getBoundingClientRect().width || SIDEBAR_MIN_WIDTH;
+  const currentWidth = currentSidebarWidth();
   state.sidebarResize = {
     pointerId: event.pointerId,
     startX: event.clientX,
     startWidth: currentWidth,
+    lastWidth: currentWidth,
   };
   els.sidebar.classList.add("resizing");
-  document.body.classList.add("sidebar-resizing");
+  if (els.sidebarResizeShield) {
+    els.sidebarResizeShield.hidden = false;
+  }
   els.sidebarResizeHandle?.setPointerCapture?.(event.pointerId);
   window.addEventListener("pointermove", updateSidebarResize);
   window.addEventListener("pointerup", finishSidebarResize);
@@ -198,27 +236,31 @@ function startSidebarResize(event) {
 function updateSidebarResize(event) {
   const resize = state.sidebarResize;
   if (!resize || event.pointerId !== resize.pointerId) return;
-  applySidebarWidth(resize.startWidth + event.clientX - resize.startX, { persist: false });
+  event.preventDefault();
+  resize.lastWidth = resize.startWidth + event.clientX - resize.startX;
+  scheduleSidebarResizeWidth(resize.lastWidth);
 }
 
 function finishSidebarResize(event) {
   const resize = state.sidebarResize;
   if (!resize || event.pointerId !== resize.pointerId) return;
-  const currentWidth = els.sidebar?.getBoundingClientRect().width || resize.startWidth;
-  applySidebarWidth(currentWidth, { persist: true });
+  const nextWidth = resize.lastWidth ?? resize.startWidth;
   state.sidebarResize = null;
   els.sidebar?.classList.remove("resizing");
-  document.body.classList.remove("sidebar-resizing");
+  if (els.sidebarResizeShield) {
+    els.sidebarResizeShield.hidden = true;
+  }
   els.sidebarResizeHandle?.releasePointerCapture?.(event.pointerId);
   window.removeEventListener("pointermove", updateSidebarResize);
   window.removeEventListener("pointerup", finishSidebarResize);
   window.removeEventListener("pointercancel", finishSidebarResize);
+  flushSidebarResizeWidth(nextWidth);
 }
 
 function handleSidebarResizeKeydown(event) {
   if (!els.sidebar) return;
   const step = event.shiftKey ? 32 : 16;
-  const currentWidth = els.sidebar.getBoundingClientRect().width || SIDEBAR_MIN_WIDTH;
+  const currentWidth = currentSidebarWidth();
   if (event.key === "ArrowLeft") {
     event.preventDefault();
     applySidebarWidth(currentWidth - step);
@@ -246,6 +288,9 @@ function setupPreviewPanelHeightSync() {
 }
 
 function schedulePreviewPanelHeightSync() {
+  if (state.sidebarResize) {
+    return;
+  }
   if (previewPanelHeightFrameId !== null) {
     window.cancelAnimationFrame(previewPanelHeightFrameId);
   }
@@ -256,6 +301,7 @@ function schedulePreviewPanelHeightSync() {
 }
 
 function syncPreviewPanelHeight() {
+  if (state.sidebarResize) return;
   if (!els.controlsCol || !els.previewCol || !els.previewPanel) return;
   if (window.matchMedia("(max-width: 1024px)").matches) {
     els.previewCol.style.removeProperty("--controls-col-height");

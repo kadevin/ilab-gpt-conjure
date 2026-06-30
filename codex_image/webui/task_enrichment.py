@@ -271,6 +271,46 @@ def _with_output_thumbnail_urls(enriched: dict[str, Any], metadata: dict[str, An
         enriched["thumbnail_urls"] = [thumbnail_urls_by_index[index] for index in sorted(thumbnail_urls_by_index)]
 
 
+def _mark_orphaned_running_outputs_failed(enriched: dict[str, Any], message: str) -> None:
+    total = _positive_int(enriched.get("total_count")) or _positive_int((enriched.get("params") or {}).get("n")) or 1
+    completed_count = 0
+    failed_count = 0
+    raw_outputs = enriched.get("outputs")
+    if isinstance(raw_outputs, list):
+        normalized_outputs: list[Any] = []
+        for fallback_index, raw_record in enumerate(raw_outputs, start=1):
+            if not isinstance(raw_record, dict):
+                normalized_outputs.append(raw_record)
+                continue
+            record = dict(raw_record)
+            status = str(record.get("status") or "")
+            if status in {"running", "queued", "waiting", ""}:
+                record["status"] = "failed"
+                record.setdefault("error", message)
+            if record.get("status") == "completed":
+                completed_count += 1
+            elif record.get("status") == "failed":
+                failed_count += 1
+            normalized_outputs.append(record)
+        enriched["outputs"] = normalized_outputs
+
+    missing_count = max(0, total - completed_count - failed_count)
+    if missing_count:
+        failed_count += missing_count
+    enriched["generated_count"] = completed_count
+    enriched["failed_count"] = failed_count
+
+
+def _has_stale_running_output_record(metadata: dict[str, Any]) -> bool:
+    raw_outputs = metadata.get("outputs")
+    if not isinstance(raw_outputs, list):
+        return False
+    return any(
+        isinstance(record, dict) and str(record.get("status") or "") in {"running", "queued", "waiting", ""}
+        for record in raw_outputs
+    )
+
+
 def _with_file_urls(
     metadata: dict[str, Any],
     active_task_ids: set[str] | None = None,
@@ -288,9 +328,14 @@ def _with_file_urls(
     if not include_request:
         enriched.pop("request", None)
     if enriched.get("status") == "running" and active_task_ids is not None and task_id not in active_task_ids:
+        message = "任务已中断：服务重启或请求中断后没有收到 Codex 返回结果。"
         enriched["status"] = "failed"
         enriched["orphaned_running"] = True
-        enriched["error"] = "任务已中断：服务重启或请求中断后没有收到 Codex 返回结果。"
+        enriched["error"] = message
+        _mark_orphaned_running_outputs_failed(enriched, message)
+    elif enriched.get("status") in {"failed", "partial_failed"} and _has_stale_running_output_record(enriched):
+        message = str(enriched.get("error") or enriched.get("last_error") or "Task failed before all image slots completed.")
+        _mark_orphaned_running_outputs_failed(enriched, message)
 
     input_files = metadata.get("input_files")
     input_names: list[str] = []

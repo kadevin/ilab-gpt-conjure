@@ -1531,16 +1531,19 @@ body.history-lightbox-open {
 }
 
 :root[data-theme="dark"] .history-task-select {
-  opacity: 0.26;
+  opacity: 0.72;
 }
 
 :root[data-theme="dark"] .history-task-list.history-view-grid .history-task-select {
   background: transparent;
+  box-shadow: none;
 }
 
 :root[data-theme="dark"] .history-task-select input {
-  border-color: color-mix(in srgb, var(--muted) 80%, transparent);
-  background: color-mix(in srgb, var(--surface) 86%, #000 14%);
+  border-color: color-mix(in srgb, var(--primary-strong) 62%, var(--muted));
+  background: color-mix(in srgb, var(--surface) 72%, #000 28%);
+  opacity: 1;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.34);
 }
 
 :root[data-theme="dark"] .history-task-select input:checked {

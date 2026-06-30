@@ -31,6 +31,9 @@ class WebUIStaticTaskTests(WebUIStaticTestCase):
         self.assertIn('"footer.historyLibrary": "历史库"', i18n_source)
         self.assertIn('"historyLibrary.openFull": "打开完整历史库"', i18n_source)
         self.assertRegex(sidebar_styles, r"\.task-history-library-slot\s*\{[^}]*margin-bottom:\s*12px")
+        self.assertRegex(render_source, r'<a class="task-history-library-card" href="/history">[\s\S]*<span>\$\{escapeHtml\(translate\("footer\.historyLibrary"\)\)\}</span>[\s\S]*<small>\$\{escapeHtml\(translate\("historyLibrary\.openFull"\)\)\}</small>')
+        self.assertRegex(Path("codex_image/webui/static/styles.css").read_text(encoding="utf-8"), r"\.task-history-library-card\s*\{[^}]*grid-template-columns:\s*minmax\(0,\s*1fr\)")
+        self.assertRegex(Path("codex_image/webui/static/styles.css").read_text(encoding="utf-8"), r"\.task-history-library-card\s*\{[^}]*min-height:\s*54px")
 
     def test_history_page_static_contract_exists(self) -> None:
         history_html = Path("codex_image/webui/static/history.html").read_text(encoding="utf-8")
@@ -41,7 +44,7 @@ class WebUIStaticTaskTests(WebUIStaticTestCase):
         self.assertIn('id="historyMonthList"', history_html)
         self.assertIn('id="historyTaskList"', history_html)
         self.assertIn('id="historyDetail"', history_html)
-        self.assertIn('/static/history.js?v=history-32', history_html)
+        self.assertIn('/static/history.js?v=history-38', history_html)
         self.assertIn('fetch("/api/task-history/summary")', history_source)
         self.assertIn('new URLSearchParams', history_source)
         self.assertIn('/api/task-history/tasks?', history_source)
@@ -188,6 +191,16 @@ class WebUIStaticTaskTests(WebUIStaticTestCase):
         self.assertIn('class="task-active-section task-active-section-waiting"', render_source)
         self.assertIn('data-active-task-section="running"', render_source)
         self.assertIn('data-active-task-section="waiting"', render_source)
+        self.assertIn('data-active-task-group-toggle="true"', render_source)
+        self.assertIn('activeTaskGroupCollapsed: Boolean(state.activeTaskGroupCollapsed)', render_source)
+        self.assertIn('state.activeTaskGroupCollapsed = !state.activeTaskGroupCollapsed', self._task_list_controls_source())
+        self.assertIn('data-active-task-group-items aria-hidden="${collapsed ? "true" : "false"}"${collapsed ? " inert" : ""}', render_source)
+        styles = Path("codex_image/webui/static/styles.css").read_text(encoding="utf-8")
+        anchors_source = Path("codex_image/webui/frontend/src/task-history-anchors.ts").read_text(encoding="utf-8")
+        self.assertIn('node.dataset.activeTaskGroupToggle', anchors_source)
+        self.assertRegex(styles, r"\.task-group-items\s*\{[^}]*max-height:\s*2400px")
+        self.assertRegex(styles, r"\.task-active-collapsed \.task-group-items\s*\{[^}]*max-height:\s*0")
+        self.assertRegex(styles, r"\.task-active-collapsed \.task-group-items\s*\{[^}]*opacity:\s*0")
         self.assertNotIn('data-task-group-toggle-key="${groupKey}"\n        data-task-group-expanded="true"\n        aria-expanded="true"\n        aria-label="收起 ${escapeHtml(group.label)}"', render_source[render_source.index("function activeTaskGroupHtml"):render_source.index("function expandedTaskGroupHtml")])
         self.assertIn("revealActiveTaskGroup", render_source)
         self.assertIn('revealActiveTaskGroup: proxy("revealActiveTaskGroup")', bootstrap_source)
@@ -263,6 +276,8 @@ class WebUIStaticTaskTests(WebUIStaticTestCase):
         self.assertIn("function restoreWaitingQueueDomOrder(", controls_source)
         self.assertIn("function animateWaitingQueueReorder(", controls_source)
         self.assertIn("function taskQueueTransparentDragImage()", controls_source)
+        self.assertIn('target?.closest(".task-thumb")', controls_source)
+        self.assertIn('if (target?.closest(".task-thumb")) {\n      event.preventDefault();\n      event.stopPropagation();\n    }', controls_source)
         self.assertIn("task-queue-transparent-drag-image", controls_source)
         self.assertIn("prefersReducedMotion", controls_source)
         self.assertIn("void reorderQueue(reorderedIds);", controls_source)
@@ -413,19 +428,19 @@ class WebUIStaticTaskTests(WebUIStaticTestCase):
         self.assertRegex(styles, r"\.task-list\s*>\s*\.task-group-expanded\s*>\s*\.task-group-header-split\s*\{[^}]*top:\s*0")
         self.assertRegex(styles, r"\.task-group-header\s*\{[^}]*background:\s*var\(--surface\)")
         self.assertRegex(styles, r"\.task-group-header\s*\{[^}]*border:\s*1px\s+solid\s+var\(--panel-border\)")
-        self.assertRegex(styles, r"\.task-group-header-split\s*\{[^}]*padding:\s*4px")
+        self.assertRegex(styles, r"\.task-group-header-split\s*\{[^}]*padding:\s*3px")
         self.assertRegex(styles, r"\.task-group-header-split\s*\{[^}]*border:\s*1px\s+solid\s+var\(--panel-border\)")
         self.assertRegex(styles, r"\.task-group-title\s*\{[^}]*display:\s*inline-flex")
         self.assertRegex(styles, r"\.task-group-count\s*\{[^}]*font-variant-numeric:\s*tabular-nums")
         self.assertRegex(styles, r"\.task-group-toggle\s*\{[^}]*display:\s*inline-flex")
         self.assertRegex(styles, r"\.task-group-toggle-icon\s*\{[^}]*width:\s*12px")
         self.assertRegex(styles, r"\.task-group-header-split\[aria-expanded=\"true\"\]\s+\.task-group-toggle\s*\{[^}]*transform:\s*rotate\(90deg\)")
-        self.assertRegex(styles, r"\.task-group-arrow-button\s*\{[^}]*min-width:\s*34px")
-        self.assertRegex(styles, r"\.task-history-anchor-label\s*,\s*\.task-group-label-button\s*\{[^}]*padding:\s*0\s+12px\s+0\s+14px")
+        self.assertRegex(styles, r"\.task-group-arrow-button\s*\{[^}]*min-width:\s*30px")
+        self.assertRegex(styles, r"\.task-history-anchor-label\s*,\s*\.task-group-label-button\s*\{[^}]*padding:\s*0\s+10px\s+0\s+12px")
         self.assertNotRegex(styles, r"\.task-history-anchor-row\.active\s*\{[^}]*background:\s*color-mix")
         self.assertRegex(styles, r"\.task-history-anchor-rail\s*\{[^}]*padding-right:\s*var\(--task-history-scrollbar-offset,\s*0px\)")
         self.assertRegex(styles, r"\.sidebar-content\s*\{[^}]*scrollbar-gutter:\s*stable")
-    def test_sidebar_task_filters_remain_and_group_bulk_controls_are_removed(self) -> None:
+    def test_sidebar_task_filters_are_integrated_into_search_and_group_bulk_controls_are_removed(self) -> None:
         html = Path("codex_image/webui/static/index.html").read_text(encoding="utf-8")
         script = self._frontend_script_source()
         render_source = self._task_list_render_source()
@@ -447,14 +462,37 @@ class WebUIStaticTaskTests(WebUIStaticTestCase):
         self.assertNotIn('id="taskCollapseAllButton"', html)
         self.assertIn('id="taskHistoryTopAnchors"', html)
         self.assertIn('id="taskHistoryBottomAnchors"', html)
+        self.assertIn('id="taskFilterButton"', html)
+        self.assertIn('aria-controls="taskFilterPopover"', html)
+        self.assertIn('aria-expanded="false"', html)
+        self.assertIn('id="taskFilterPopover"', html)
+        self.assertIn('id="taskFilterClearButton"', html)
+        self.assertIn('data-i18n="action.clear"', html)
+        self.assertIn('id="taskFilterActiveCount"', html)
+        self.assertNotIn('id="taskFilterDetails"', html)
+        self.assertNotIn('class="sidebar-filter-panel"', html)
+        self.assertNotIn('class="task-filter-summary"', html)
         self.assertIn("taskRatioFilter: document.querySelector(\"#taskRatioFilter\")", script)
         self.assertIn("taskOrientationFilter: document.querySelector(\"#taskOrientationFilter\")", script)
         self.assertIn("taskPromptFidelityFilter: document.querySelector(\"#taskPromptFidelityFilter\")", script)
         self.assertIn("taskResolutionFilter: document.querySelector(\"#taskResolutionFilter\")", script)
+        self.assertIn("taskFilterButton: document.querySelector(\"#taskFilterButton\")", script)
+        self.assertIn("taskFilterPopover: document.querySelector(\"#taskFilterPopover\")", script)
+        self.assertIn("taskFilterClearButton: document.querySelector(\"#taskFilterClearButton\")", script)
+        self.assertIn("taskFilterActiveCount: document.querySelector(\"#taskFilterActiveCount\")", script)
+        self.assertNotIn("taskFilterDetails: document.querySelector(\"#taskFilterDetails\")", script)
         self.assertNotIn("taskQuantityFilter: document.querySelector(\"#taskQuantityFilter\")", script)
         self.assertIn("sidebarContent: document.querySelector(\".sidebar-content\")", script)
         self.assertIn("taskHistoryTopAnchors: document.querySelector(\"#taskHistoryTopAnchors\")", script)
         self.assertIn("taskHistoryBottomAnchors: document.querySelector(\"#taskHistoryBottomAnchors\")", script)
+        self.assertIn("function updateTaskFilterSummary", controls_source)
+        self.assertIn("function setTaskFilterPopoverOpen(open", controls_source)
+        self.assertIn("function clearTaskFilters(options", controls_source)
+        self.assertIn("document.addEventListener(\"click\", handleTaskFilterDocumentClick)", controls_source)
+        self.assertIn("document.addEventListener(\"keydown\", handleTaskFilterKeydown)", controls_source)
+        self.assertIn("els.taskFilterActiveCount.hidden = activeCount === 0", controls_source)
+        self.assertIn('activeCount ? String(activeCount) : ""', controls_source)
+        self.assertIn("els.taskFilterClearButton.disabled = activeCount === 0", controls_source)
         self.assertIn("taskFilterValues()", script)
         self.assertIn("taskMatchesFilters(task, filters)", script)
         self.assertIn("taskRatio(task)", script)
@@ -469,7 +507,16 @@ class WebUIStaticTaskTests(WebUIStaticTestCase):
         self.assertIn("requestAnimationFrame(renderChunk)", render_source)
         self.assertNotIn("taskHistoryCollapseTimerId", controls_source)
         self.assertNotIn("window.setTimeout", controls_source)
-        self.assertRegex(styles, r"\.sidebar-filter-panel\s*\{[^}]*display:\s*grid")
+        self.assertRegex(styles, r"\.sidebar-search\s*\{[^}]*position:\s*relative")
+        self.assertRegex(styles, r"\.sidebar-search input\s*\{[^}]*padding:\s*0\s+50px\s+0\s+32px")
+        self.assertRegex(styles, r"\.task-filter-button\s*\{[^}]*position:\s*absolute")
+        self.assertRegex(styles, r"\.task-filter-button\s*\{[^}]*right:\s*5px")
+        self.assertRegex(styles, r"\.task-filter-popover\s*\{[^}]*position:\s*absolute")
+        self.assertRegex(styles, r"\.task-filter-popover\s*\{[^}]*box-shadow:\s*var\(--shadow-popover\)")
+        self.assertRegex(styles, r"\.task-filter-popover\[hidden\]\s*\{[^}]*display:\s*none")
+        self.assertRegex(styles, r"\.task-filter-popover-header\s*\{[^}]*justify-content:\s*space-between")
+        self.assertRegex(styles, r"\.task-filter-active-count\s*\{[^}]*background:\s*var\(--primary\)")
+        self.assertRegex(styles, r"\.task-filter-active-count\[hidden\]\s*\{[^}]*display:\s*none")
         self.assertRegex(styles, r"\.sidebar-filter-grid\s*\{[^}]*grid-template-columns:\s*repeat\(2,\s*minmax\(0,\s*1fr\)\)")
         self.assertNotIn(".task-group-bulk-actions", styles)
         self.assertNotIn(".task-group-action-icon", styles)
@@ -489,13 +536,25 @@ class WebUIStaticTaskTests(WebUIStaticTestCase):
         self.assertIn("state.runStartedAt = timestampMs(task.started_at || task.created_at) || Date.now()", script)
         self.assertNotIn("Date.now() - task.started_at", script)
         self.assertNotIn("state.runStartedAt = task.started_at || Date.now()", script)
-    def test_javascript_displays_failed_task_reason_from_last_error(self) -> None:
+    def test_failed_task_cards_keep_provider_summary_instead_of_error_detail(self) -> None:
         script = self._frontend_script_source()
+        meta_details_source = self._extract_javascript_function(script, "taskMetaDetailsText")
+        meta_text_source = self._extract_javascript_function(script, "taskMetaText")
+        preview_source = self._task_preview_source()
 
         self.assertIn("function taskFailureMessage", script)
         self.assertIn("task.error || task.last_error", script)
-        self.assertIn('`${formatTaskStatus(task)} · ${failure}`', script)
-        self.assertIn('taskFailureMessage(selected) || translate("preview.taskFailed")', script)
+        self.assertIn('taskFailureMessage(selected) || translate("preview.taskFailed")', preview_source)
+        self.assertIn("const backend = taskCardProviderLabel(task)", meta_details_source)
+        self.assertIn('return [size, backend].filter(Boolean).join(" · ");', meta_details_source)
+        self.assertIn("function taskMetaDetailsWithCompletionText", script)
+        self.assertIn("function taskCardCompletionTimeText", script)
+        self.assertIn("const backend = taskCardProviderLabel(task)", meta_text_source)
+        self.assertNotIn("taskBackendLabel(task)", meta_details_source)
+        self.assertNotIn("taskFailureMessage(task)", meta_details_source)
+        self.assertNotIn("taskFailureMessage(task)", meta_text_source)
+        self.assertNotIn("taskRetryStateText(task)", meta_details_source)
+        self.assertNotIn('`${formatTaskStatus(task)} · ${failure}`', script)
     def test_failed_preview_wraps_long_error_messages(self) -> None:
         styles = Path("codex_image/webui/static/styles.css").read_text(encoding="utf-8")
 
@@ -505,6 +564,9 @@ class WebUIStaticTaskTests(WebUIStaticTestCase):
         self.assertRegex(styles, r"\.error-preview\s*\{[^}]*padding:\s*24px")
         self.assertRegex(styles, r"\.error-preview\s*\{[^}]*flex-direction:\s*column")
         self.assertRegex(styles, r"\.error-preview\s*\{[^}]*align-items:\s*stretch")
+        self.assertRegex(styles, r"\.error-preview\s*\{[^}]*border:\s*1px solid transparent")
+        self.assertRegex(styles, r"\.error-preview\s*\{[^}]*background:\s*var\(--danger-soft\)")
+        self.assertNotRegex(styles, r"\.error-preview\s*\{[^}]*border-color:\s*color-mix\(in srgb,\s*var\(--danger\)")
         self.assertRegex(styles, r"\.error-preview\s+p\s*\{[^}]*margin:\s*0")
     def test_failed_history_cards_use_static_failed_thumbnail(self) -> None:
         script = self._frontend_script_source()
@@ -522,8 +584,8 @@ class WebUIStaticTaskTests(WebUIStaticTestCase):
 
         self.assertRegex(styles, r"\.task-card\s*>\s*\.task-info\s*\{[^}]*flex:\s*1")
         self.assertNotRegex(styles, r"\.task-card\s*>\s*div\s*\{[^}]*flex:\s*1")
-        self.assertRegex(styles, r"\.task-thumb\.running-thumb\s*\{[^}]*width:\s*52px")
-        self.assertRegex(styles, r"\.task-thumb\.running-thumb\s*\{[^}]*height:\s*52px")
+        self.assertRegex(styles, r"\.task-thumb\.running-thumb\s*\{[^}]*width:\s*48px")
+        self.assertRegex(styles, r"\.task-thumb\.running-thumb\s*\{[^}]*height:\s*48px")
     def test_image_to_image_history_cards_stack_output_and_reference_thumbnails(self) -> None:
         script = self._frontend_script_source()
         styles = Path("codex_image/webui/static/styles.css").read_text(encoding="utf-8")
@@ -546,7 +608,9 @@ class WebUIStaticTaskTests(WebUIStaticTestCase):
         self.assertRegex(styles, r"\.task-thumb-stack\s*\{[^}]*position:\s*relative")
         self.assertRegex(styles, r"\.task-thumb-stack\s*\{[^}]*background:\s*transparent")
         self.assertNotRegex(styles, r"\.task-thumb-stack\s*\{[^}]*border:")
-        self.assertRegex(styles, r"\.task-thumb-stack\s+img\s*\{[^}]*object-fit:\s*cover")
+        self.assertRegex(styles, r"\.task-thumb-stack\s+img\s*\{[^}]*object-fit:\s*contain")
+        self.assertRegex(styles, r"\.task-thumb-stack\s+img\s*\{[^}]*background:\s*transparent")
+        self.assertNotRegex(styles, r"\.task-thumb-stack\s+img\s*\{[^}]*background:\s*color-mix")
         self.assertRegex(styles, r"\.task-thumb-stack-spinner\s*\{[^}]*left:\s*50%")
         self.assertRegex(styles, r"\.task-thumb-stack-spinner\s*\{[^}]*top:\s*50%")
         self.assertRegex(styles, r"\.task-thumb-stack-spinner\s*\{[^}]*width:\s*24px")
@@ -576,50 +640,89 @@ class WebUIStaticTaskTests(WebUIStaticTestCase):
 
         self.assertIn('loading="lazy"', source)
         self.assertIn('decoding="async"', source)
-        self.assertRegex(source, r'class="task-thumb-reference"[^>]*loading="lazy"[^>]*decoding="async"')
-        self.assertRegex(source, r'class="task-thumb-output"[^>]*loading="lazy"[^>]*decoding="async"')
-        self.assertRegex(source, r'class="task-thumb-single-image"[^>]*loading="lazy"[^>]*decoding="async"')
+        self.assertRegex(source, r'class="task-thumb-reference"[^>]*loading="lazy"[^>]*decoding="async"[^>]*draggable="false"')
+        self.assertRegex(source, r'class="task-thumb-output"[^>]*loading="lazy"[^>]*decoding="async"[^>]*draggable="false"')
+        self.assertRegex(source, r'class="task-thumb-single-image"[^>]*loading="lazy"[^>]*decoding="async"[^>]*draggable="false"')
+        self.assertRegex(styles, r"\.task-thumb,\s*\.task-thumb img\s*\{[^}]*user-select:\s*none")
+        self.assertRegex(styles, r"\.task-thumb,\s*\.task-thumb img\s*\{[^}]*-webkit-user-drag:\s*none")
         self.assertRegex(styles, r"\.task-thumb-output\s*\{[^}]*left:\s*0")
         self.assertRegex(styles, r"\.task-thumb-output\s*\{[^}]*top:\s*0")
         self.assertRegex(styles, r"\.task-thumb-single-image\s*\{[^}]*object-fit:\s*contain")
         self.assertRegex(styles, r"\.task-thumb-mode-badge\s*\{[^}]*font-size:\s*10px")
         self.assertRegex(styles, r"\.task-card:hover\s+\.task-thumb-reference\s*,[\s\S]*\.archive-card:hover\s+\.task-thumb-reference\s*\{[^}]*transform:\s*translate\(-2px,\s*-2px\)")
         self.assertRegex(styles, r"\.task-card:hover\s+\.task-thumb-output\s*,[\s\S]*\.archive-card:hover\s+\.task-thumb-output\s*\{[^}]*opacity:\s*0\.24")
-    def test_history_cards_show_status_lights_and_image_blocks(self) -> None:
+    def test_history_cards_show_status_labels_and_image_blocks(self) -> None:
         script = self._frontend_script_source()
         styles = Path("codex_image/webui/static/styles.css").read_text(encoding="utf-8")
 
-        self.assertIn("taskStatusLightHtml(task)", script)
+        self.assertIn("taskStatusLabelHtml(task)", script)
+        self.assertNotIn("taskStatusLightHtml(task)", script)
+        self.assertNotIn("function taskStatusTone", script)
         self.assertIn("taskImageBlocksHtml(task)", script)
         self.assertIn("taskImageSummaryText(task)", script)
-        self.assertIn('class="task-status-row"', script)
+        self.assertIn('class="task-status-row task-status-inline"', script)
+        self.assertIn('class="task-meta-row"', script)
+        self.assertIn('const detailRowClass = detailRightHtml ? "task-detail-row" : "task-detail-row task-detail-row-meta-only";', script)
+        self.assertIn('class="${detailRowClass}"', script)
+        self.assertIn('data-task-meta-id="${taskId}"', script)
+        self.assertIn("function taskCardProviderLabel", script)
+        self.assertIn("taskApiProviderLabel(task)", script)
+        self.assertIn("taskApiProviderId(task)", script)
         self.assertIn("task-image-progress", script)
         self.assertIn('class="task-image-summary"', script)
+        self.assertIn('class="task-card-time"', script)
+        self.assertIn('const imageSummaryHtml = imageSummary ? `<span class="task-image-summary">${imageSummary}</span>` : "";', script)
+        self.assertIn('${imageBlocks}\n            <span class="task-status-row task-status-inline"', script)
+        self.assertLess(script.index('class="task-meta-row"'), script.index('class="task-title-row"'))
+        self.assertLess(script.index('class="task-title-row"'), script.index('${detailRow}'))
+        self.assertIn('<span class="task-status-meta" data-task-meta-id="${taskId}">${statusMeta}</span>', script)
+        self.assertNotIn('<div class="task-title">${title}</div>\n          <div class="task-status-row task-status-inline"', script)
+        self.assertIn('legacyMethod("taskCardProviderLabel", task)', self._task_archive_controls_source())
         self.assertIn('aria-label="${escapeHtml(taskStatusAccessibleLabel(task))}"', script)
-        self.assertIn('["failed", "partial_failed"].includes(status)', script)
-        self.assertIn('status === "completed"', script)
-        self.assertIn('status === "running"', script)
-        self.assertIn('status === "queued" || status === "submitting"', script)
+        self.assertIn('const statusClass = task.status ? ` ${escapeHtml(task.status)}` : "";', script)
         self.assertIn("taskOutputRecordsByIndex(task)", script)
         self.assertIn("taskOutputRecordHasDisplayableImage(record)", script)
         self.assertIn("taskVisibleCompletedCount(task)", script)
         self.assertIn('record?.status === "completed"', script)
         self.assertIn('record?.status === "failed"', script)
-        self.assertIn('const visibleCount = Math.min(total, 12)', script)
-        self.assertRegex(styles, r"\.task-status-light\s*\{[^}]*border-radius:\s*999px")
-        self.assertRegex(styles, r"\.task-status-light\.failed\s*\{[^}]*background:\s*var\(--danger\)")
-        self.assertRegex(styles, r"\.task-status-light\.completed\s*\{[^}]*background:\s*var\(--primary\)")
-        self.assertRegex(styles, r"\.task-status-light\.running\s*\{[^}]*background:\s*var\(--status-blue\)")
-        self.assertRegex(styles, r"\.task-status-light\.queued\s*\{[^}]*background:\s*var\(--accent\)")
-        self.assertRegex(styles, r"\.task-image-progress\s*\{[^}]*grid-template-columns:\s*repeat\(var\(--task-block-count\)")
+        self.assertIn('const visibleCount = Math.min(total, 4)', script)
+        self.assertNotIn(".task-status-light", styles)
+        self.assertRegex(styles, r"\.task-status-inline\s*\{[^}]*max-width:\s*58px")
+        self.assertRegex(styles, r"\.task-status-label\s*\{[^}]*max-width:\s*58px")
+        self.assertRegex(styles, r"\.task-card\.failed \.task-status-label,\s*\.task-card\.partial_failed \.task-status-label\s*\{[^}]*var\(--danger\)")
+        self.assertRegex(styles, r"\.task-meta-row\s*\{[^}]*display:\s*grid")
+        self.assertRegex(styles, r"\.task-meta-row\s*\{[^}]*grid-template-columns:\s*minmax\(0,\s*1fr\)\s*auto")
+        self.assertRegex(styles, r"\.task-detail-row\s*\{[^}]*display:\s*grid")
+        self.assertRegex(styles, r"\.task-detail-row\s*\{[^}]*grid-template-columns:\s*minmax\(0,\s*1fr\)\s*minmax\(72px,\s*40%\)")
+        self.assertRegex(styles, r"\.task-detail-row-meta-only\s*\{[^}]*grid-template-columns:\s*minmax\(0,\s*1fr\)")
+        self.assertRegex(styles, r"\.task-retry-state\s*\{[^}]*justify-self:\s*end")
+        self.assertRegex(styles, r"\.task-retry-state\s*\{[^}]*text-align:\s*right")
+        self.assertRegex(styles, r"\.task-card-time\s*\{[^}]*justify-self:\s*end")
+        self.assertRegex(styles, r"\.task-card-time\s*\{[^}]*text-align:\s*right")
+        self.assertRegex(styles, r"\.task-list\s*\{[^}]*gap:\s*4px")
+        self.assertRegex(styles, r"\.task-group-items\s*\{[^}]*gap:\s*4px")
+        self.assertRegex(styles, r"\.task-group-active \.task-group-items-expanded\s*\{[^}]*gap:\s*4px")
+        self.assertRegex(styles, r"\.task-card\s*\{[^}]*border:\s*1px solid color-mix\(in srgb,\s*var\(--line\) 34%,\s*transparent\)")
+        self.assertRegex(styles, r"\.task-image-progress\s*\{[^}]*grid-template-columns:\s*repeat\(var\(--task-block-count\),\s*8px\)")
+        self.assertRegex(styles, r"\.task-image-progress\s*\{[^}]*max-width:\s*41px")
+        self.assertRegex(styles, r"\.task-image-block\s*\{[^}]*width:\s*8px")
+        self.assertRegex(styles, r"\.task-image-block\s*\{[^}]*height:\s*8px")
+        self.assertRegex(styles, r"\.task-image-block\s*\{[^}]*border:\s*0")
         self.assertRegex(styles, r"\.task-card\.failed\s*,\s*\.task-card\.partial_failed\s*\{")
+        self.assertRegex(styles, r"\.task-card\.failed\s*,\s*\.task-card\.partial_failed\s*\{[^}]*border-color:\s*transparent")
+        self.assertRegex(styles, r"\.task-card\.failed\s*,\s*\.task-card\.partial_failed\s*\{[^}]*box-shadow:\s*none")
+        self.assertNotRegex(styles, r"\.task-card\.failed\s*,\s*\.task-card\.partial_failed\s*\{[^}]*border-color:\s*color-mix\(in srgb,\s*var\(--danger\)")
         self.assertRegex(styles, r"\.task-card\.active\s*\{[^}]*box-shadow")
-        self.assertRegex(styles, r"\.task-card\.active::after\s*\{[^}]*content:\s*attr\(data-active-label\)")
-        self.assertRegex(styles, r"\.task-card\.active::after\s*\{[^}]*right:\s*40px")
-        self.assertRegex(styles, r"\.task-card\.active::after\s*\{[^}]*background:\s*var\(--primary\)")
-        self.assertRegex(styles, r"\.task-card\.active\.queue-waiting::after\s*,\s*\.task-card\.active\.queue-running::after\s*,\s*\.task-card\.active\.batch-mode::after\s*\{[^}]*right:\s*8px")
+        self.assertNotRegex(styles, r"\.task-card\.active\s*\{[^}]*height:")
+        self.assertNotIn(".task-card.active::after", styles)
+        self.assertNotIn(".task-card.active .task-title-row", styles)
         self.assertRegex(styles, r"\.task-card\.active\.running\s*\{[^}]*var\(--status-blue\)")
-        self.assertRegex(styles, r"\.task-card\.active\.failed\s*,\s*\.task-card\.active\.partial_failed\s*\{[^}]*background:\s*var\(--danger-soft\)")
+        self.assertRegex(styles, r"\.task-card\.active\.failed\s*,\s*\.task-card\.active\.partial_failed\s*\{[^}]*color-mix\(in srgb,\s*var\(--danger-soft\)")
+        self.assertRegex(styles, r"\.task-card\.active\.failed\s*,\s*\.task-card\.active\.partial_failed\s*\{[^}]*border-color:\s*var\(--primary\)")
+        self.assertNotRegex(styles, r"\.task-card\.active\.failed\s*,\s*\.task-card\.active\.partial_failed\s*\{[^}]*inset 0 0 0 1px color-mix\(in srgb,\s*var\(--danger\)")
+        self.assertIn("function taskImageSummaryVisible", script)
+        self.assertIn("const showImageSummary = taskImageSummaryVisible(task)", script)
+        self.assertRegex(script, r"function taskImageSummaryVisible\(task(?:: any)?\)\s*\{\s*void task;\s*return true;")
     def test_history_image_summary_counts_explicit_running_slots(self) -> None:
         node = shutil.which("node")
         if node is None:
@@ -665,8 +768,16 @@ class WebUIStaticTaskTests(WebUIStaticTestCase):
                     { index: 2, status: "running" },
                   ],
                 });
-                if (summary !== "4 张 · 成功 0 · 失败 0 · 生成中 2 · 等待 2") {
+                if (summary !== "生成中 2 · 等待 2") {
                   throw new Error(`unexpected summary: ${summary}`);
+                }
+                const orphanedInterruptedSummary = taskImageSummaryText({
+                  status: "failed",
+                  total_count: 1,
+                  outputs: [{ index: 1, status: "running" }],
+                });
+                if (orphanedInterruptedSummary !== "") {
+                  throw new Error(`interrupted running slot should display as failed, got ${orphanedInterruptedSummary}`);
                 }
                 const summaryOnlyPartial = {
                   status: "partial_failed",
@@ -679,7 +790,7 @@ class WebUIStaticTaskTests(WebUIStaticTestCase):
                   throw new Error(`summary-only partial failure should use count fields, got ${summaryOnlyPartialStates}`);
                 }
                 const summaryOnlyPartialText = taskImageSummaryText(summaryOnlyPartial);
-                if (summaryOnlyPartialText !== "2 张 · 成功 1 · 失败 1") {
+                if (summaryOnlyPartialText !== "") {
                   throw new Error(`summary-only partial failure should count one success and one failure, got ${summaryOnlyPartialText}`);
                 }
                 const staleProgressTask = {
@@ -693,7 +804,7 @@ class WebUIStaticTaskTests(WebUIStaticTestCase):
                   ],
                 };
                 const staleSummary = taskImageSummaryText(staleProgressTask);
-                if (staleSummary !== "4 张 · 成功 1 · 失败 0 · 生成中 1 · 等待 2") {
+                if (staleSummary !== "生成中 1 · 等待 2") {
                   throw new Error(`unexpected stale progress summary: ${staleSummary}`);
                 }
                 const generated = taskGeneratedCount(staleProgressTask, 1);
@@ -721,7 +832,7 @@ class WebUIStaticTaskTests(WebUIStaticTestCase):
                   ],
                 };
                 const retryingSummary = taskImageSummaryText(retryingSparseTask);
-                if (retryingSummary !== "4 张 · 成功 2 · 失败 0 · 生成中 1 · 等待 1") {
+                if (retryingSummary !== "生成中 1 · 等待 1") {
                   throw new Error(`sparse retry progress should not double-count output_urls: ${retryingSummary}`);
                 }
                 const prunedTask = {
@@ -759,6 +870,7 @@ class WebUIStaticTaskTests(WebUIStaticTestCase):
         self.assertIn('class="task-info"', render_source)
         self.assertIn("taskMetaDetailsText(task)", render_source)
         self.assertIn("task-status-meta", render_source)
+        self.assertIn("task-meta-row", render_source)
         self.assertRegex(styles, r"\.task-card\s*>\s*\.task-info\s*\{[^}]*min-width:\s*0")
         self.assertRegex(styles, r"\.task-title\s*\{[^}]*text-overflow:\s*ellipsis")
         self.assertRegex(styles, r"\.task-status-meta\s*\{[^}]*text-overflow:\s*ellipsis")
@@ -893,7 +1005,9 @@ class WebUIStaticTaskTests(WebUIStaticTestCase):
         self.assertIn("function closeRealtimeUpdates", queue_source)
         self.assertIn("function handleRealtimeMessage", queue_source)
         self.assertIn("function handleRealtimePayload", queue_source)
+        self.assertIn("async function applyRealtimeTaskPayloads", queue_source)
         self.assertIn("applyTasksSnapshot", queue_source)
+        self.assertIn("await applyRealtimeTaskPayloads(payload.tasks || [])", queue_source)
         self.assertIn("applyQueueTasks(payload.queue)", queue_source)
         self.assertIn("function applyQueueTasks", queue_source)
         self.assertIn("applyTaskUpdate", queue_source)
@@ -934,9 +1048,11 @@ class WebUIStaticTaskTests(WebUIStaticTestCase):
         )
         self.assertIn("@app.get(\"/api/events\", response_model=None)", queue_routes)
         self.assertIn("stream: bool = False", queue_routes)
+        self.assertIn("finished_events = task_events(ctx, previous_task_ids - current_task_ids)", queue_routes)
+        self.assertIn("queue_event(queue, finished_events)", queue_routes)
         self.assertIn("request.is_disconnected()", queue_routes)
         self.assertIn("EVENT_STREAM_CHECK_INTERVAL_SECONDS", queue_routes)
-        self.assertIn('"type": "queue"', queue_routes)
+        self.assertIn('"type": "queue"', events_source)
         self.assertIn('"type": "task"', events_source)
         self.assertIn("requestSeq !== state.queueRequestSeq", queue_source)
         self.assertIn("requestSeq !== state.tasksRequestSeq", task_source)
@@ -1236,6 +1352,7 @@ class WebUIStaticTaskTests(WebUIStaticTestCase):
             "taskOrientation",
             "taskPromptFidelity",
             "taskResolution",
+            "taskDurationText",
             "taskRuntimeText",
             "formatDuration",
         ]:
@@ -1430,9 +1547,11 @@ class WebUIStaticTaskTests(WebUIStaticTestCase):
         self.assertIn("task-delete-icon", script)
         self.assertIn('<svg class="task-action-icon task-delete-icon"', script)
         self.assertIn('method: "DELETE"', script)
-        self.assertRegex(styles, r"\.task-card\s*\{[^}]*height:\s*82px")
-        self.assertRegex(styles, r"\.task-card\s*\{[^}]*padding-right:\s*34px")
-        self.assertRegex(styles, r"\.task-thumb\s*\{[^}]*height:\s*52px")
+        self.assertRegex(styles, r"\.task-card\s*\{[^}]*height:\s*66px")
+        self.assertNotRegex(styles, r"\.task-card\.failed\s*,\s*\.task-card\.partial_failed\s*\{[^}]*height:")
+        self.assertNotRegex(styles, r"\.task-card\.active\s*\{[^}]*height:")
+        self.assertRegex(styles, r"\.task-card\s*\{[^}]*padding-right:\s*30px")
+        self.assertRegex(styles, r"\.task-thumb\s*\{[^}]*height:\s*48px")
         self.assertRegex(styles, r"\.task-card-actions\s*\{[^}]*right:\s*8px")
         self.assertRegex(styles, r"\.task-card-actions\s*\{[^}]*top:\s*50%")
         self.assertRegex(styles, r"\.task-card-actions\s*\{[^}]*display:\s*inline-flex")
@@ -1454,6 +1573,8 @@ class WebUIStaticTaskTests(WebUIStaticTestCase):
         styles = Path("codex_image/webui/static/styles.css").read_text(encoding="utf-8")
 
         self.assertIn("function taskRuntimeText", script)
+        self.assertIn("function taskCardRuntimeText", script)
+        self.assertIn("function taskDurationText", script)
         self.assertIn("function taskCompletionTimestampText", script)
         self.assertIn("function taskCompletionTimestampTitle", script)
         self.assertIn('["completed", "failed", "partial_failed"].includes(task.status)', script)
@@ -1461,11 +1582,17 @@ class WebUIStaticTaskTests(WebUIStaticTestCase):
         self.assertIn("task.completed_at || task.updated_at", script)
         self.assertIn('formatTranslation("taskStatus.runtimeCompleted"', script)
         self.assertIn('formatTranslation("taskStatus.runtime"', script)
+        self.assertIn("const completion = taskCompletionTimestampText(task)", script)
+        self.assertIn("return taskDurationText(task);", script)
+        self.assertNotIn("if (completion?.shortText) return completion.shortText;", script)
+        self.assertIn("const runtimeFullText = taskRuntimeText(task)", script)
+        self.assertIn('const runtimeTitleText = [runtimeFullText, completionTitle].filter(Boolean).join(" · ");', script)
         self.assertIn('class="task-runtime"', script)
         self.assertIn('data-task-completed-at-id="${taskId}"', script)
-        self.assertIn('title="${escapeHtml(completionTitle)}"', script)
-        self.assertRegex(styles, r"\.task-card\s*\{[^}]*height:\s*82px")
-        self.assertRegex(styles, r"\.task-runtime\s*\{[^}]*font-size:\s*11px")
+        self.assertIn('title="${escapeHtml(runtimeTitleText)}"', script)
+        self.assertRegex(styles, r"\.task-card\s*\{[^}]*height:\s*66px")
+        self.assertRegex(styles, r"\.task-meta,\s*\.task-meta-row,\s*\.task-runtime,\s*\.task-card-time,\s*\.task-retry-state\s*\{[^}]*font-size:\s*10\.5px")
+        self.assertRegex(styles, r"\.task-meta-row\s*\{[^}]*color:\s*var\(--muted\)")
         self.assertRegex(styles, r"\.task-runtime\s*\{[^}]*white-space:\s*nowrap")
 
     def test_task_cards_have_scoped_context_menu_actions(self) -> None:
@@ -1557,7 +1684,11 @@ class WebUIStaticTaskTests(WebUIStaticTestCase):
         self.assertIn("function taskRetryReasonText", script)
         self.assertIn('formatTranslation("taskStatus.waitingRetry"', script)
         self.assertIn('formatTranslation("taskStatus.manualRetryAvailable"', script)
+        self.assertIn("function taskCardRetryStateText", script)
+        self.assertIn('formatTranslation("taskStatus.manualRetryShort"', script)
         self.assertIn("taskRetryStateText(task)", render_source)
+        self.assertIn("taskCardRetryStateText(task) || retryFullText", render_source)
+        self.assertIn('title="${escapeHtml(retryFullText)}"', render_source)
         self.assertIn("retryText", render_source)
         self.assertIn("retryState", script)
         self.assertIn("data-task-retry-id", script)
@@ -1580,11 +1711,17 @@ class WebUIStaticTaskTests(WebUIStaticTestCase):
                 self._extract_javascript_function(script, "taskOutputRecordHasDisplayableImage"),
                 self._extract_javascript_function(script, "taskOutputRecordsByIndex"),
                 self._extract_javascript_function(script, "taskVisibleCompletedCount"),
+                self._extract_javascript_function(script, "taskGeneratedCount"),
+                self._extract_javascript_function(script, "taskTotalCount"),
+                self._extract_javascript_function(script, "taskImageBlockStatesFromCounts"),
+                self._extract_javascript_function(script, "taskImageBlockStates"),
                 self._extract_javascript_function(script, "taskHasNonRetryableError"),
                 self._extract_javascript_function(script, "taskRetrySuccessfulCount"),
                 self._extract_javascript_function(script, "taskPartialFailureCanRetryGenericInvalidRequest"),
                 self._extract_javascript_function(script, "taskRetryReasonText"),
                 self._extract_javascript_function(script, "taskRetryStateText"),
+                self._extract_javascript_function(script, "canRetryFailedTask"),
+                self._extract_javascript_function(script, "taskCardRetryStateText"),
                 """
                 const i18nMessages = {
                   "taskDerived.usageLimited": "额度限制",
@@ -1594,6 +1731,11 @@ class WebUIStaticTaskTests(WebUIStaticTestCase):
                   "taskStatus.retrying": "{reason}，重试中（第 {attempt}/{max} 次尝试）",
                   "taskStatus.nonRetryableAttempt": "第 {attempt}/{max} 次，不可重试",
                   "taskStatus.manualRetryAvailable": "已停止，可手动重试失败图片",
+                  "taskStatus.waitingRetryShort": "等待重试",
+                  "taskStatus.retryingShort": "重试中",
+                  "taskStatus.nonRetryableShort": "不可重试",
+                  "taskStatus.manualRetryShort": "可手动重试",
+                  "taskStatus.stoppedShort": "已停止",
                 };
                 function translate(key) {
                   return String(i18nMessages[key] || key);
@@ -1648,6 +1790,15 @@ class WebUIStaticTaskTests(WebUIStaticTestCase):
                   max_attempts: 2,
                   last_error: "HTTP 400: {\\\"error\\\":{\\\"type\\\":\\\"invalid_request_error\\\",\\\"code\\\":\\\"invalid_value\\\"}}"
                 });
+                const cardRunningRetry = taskCardRetryStateText({ status: "running", attempts: 2, max_attempts: 2, last_error: "temporary network timeout" });
+                const cardQueuedRetry = taskCardRetryStateText({ status: "queued", attempts: 1, max_attempts: 2, last_error: "temporary server failure" });
+                const cardFailedManualRetry = taskCardRetryStateText({ status: "failed", attempts: 1, max_attempts: 2, last_error: "temporary server failure", failed_count: 1 });
+                const cardNonRetryableFailure = taskCardRetryStateText({
+                  status: "failed",
+                  attempts: 1,
+                  max_attempts: 2,
+                  last_error: "HTTP 400: {\\\"error\\\":{\\\"type\\\":\\\"invalid_request_error\\\",\\\"code\\\":\\\"invalid_value\\\"}}"
+                });
                 if (firstRun !== "") {
                   throw new Error(`expected first run to have no retry label, got ${firstRun}`);
                 }
@@ -1677,6 +1828,18 @@ class WebUIStaticTaskTests(WebUIStaticTestCase):
                 }
                 if (fullInvalidValueFailure !== "第 1/2 次，不可重试") {
                   throw new Error(`expected invalid value failure to remain non-retryable, got ${fullInvalidValueFailure}`);
+                }
+                if (cardRunningRetry !== "重试中") {
+                  throw new Error(`expected compact running retry label, got ${cardRunningRetry}`);
+                }
+                if (cardQueuedRetry !== "等待重试") {
+                  throw new Error(`expected compact queued retry label, got ${cardQueuedRetry}`);
+                }
+                if (cardFailedManualRetry !== "可手动重试") {
+                  throw new Error(`expected compact manual retry label, got ${cardFailedManualRetry}`);
+                }
+                if (cardNonRetryableFailure !== "不可重试") {
+                  throw new Error(`expected compact non-retryable label, got ${cardNonRetryableFailure}`);
                 }
                 """,
             ]
@@ -1735,6 +1898,9 @@ class WebUIStaticTaskTests(WebUIStaticTestCase):
         self.assertRegex(styles, r"\.preview-select-button\s*\{[^}]*background:\s*color-mix\(in srgb,\s*var\(--primary-light\) 78%,\s*var\(--surface\) 22%\)")
         self.assertRegex(styles, r"\.preview-select-button\s*\{[^}]*color:\s*var\(--primary-strong\)")
         self.assertRegex(styles, r"\.preview-select-button\s*\{[^}]*opacity:\s*0\.92")
+        self.assertRegex(styles, r"\.preview-card\s*\{[^}]*border:\s*1px solid transparent")
+        self.assertRegex(styles, r"\.preview-card\s*\{[^}]*background:\s*var\(--surface-soft\)")
+        self.assertNotRegex(styles, r"\.preview-card\s*\{[^}]*border:\s*1px solid var\(--line\)")
         self.assertRegex(styles, r"\.preview-card\.is-selected\s*\{[^}]*border-color:\s*var\(--primary\)")
         self.assertRegex(styles, r"\.preview-select-button\[aria-pressed=\"true\"\]\s*\{[^}]*background:\s*var\(--primary\)")
         self.assertRegex(styles, r"\.preview-select-button\[aria-pressed=\"true\"\]\s*\{[^}]*opacity:\s*1")
@@ -1811,6 +1977,7 @@ class WebUIStaticTaskTests(WebUIStaticTestCase):
         self.assertNotIn("els.previewGrid.innerHTML = outputUrls.map", source)
         self.assertIn('els.previewGrid.addEventListener("click", handlePreviewGridClick)', source)
         self.assertRegex(styles, r"\.preview-card\.is-loading-next\s*\{[^}]*background:\s*var\(--surface-soft\)")
+        self.assertRegex(styles, r"\.preview-card\.is-loading-next\s*\{[^}]*border-color:\s*transparent")
         self.assertNotRegex(styles, r"\.preview-card\.is-loading-next\s+img\s*\{[^}]*opacity:\s*0\.")
     def test_running_preview_shows_partial_outputs(self) -> None:
         script = self._frontend_script_source()
@@ -1856,8 +2023,8 @@ class WebUIStaticTaskTests(WebUIStaticTestCase):
         self.assertRegex(styles, r"var\(--digit-offset,\s*0\)")
         self.assertNotRegex(styles, r"\.elapsed-wheel-strip\s*\{[^}]*--digit-offset:\s*0")
         self.assertRegex(styles, r"\.waiting-preview\s+\.elapsed-timer\s*\{[^}]*font-size:\s*40px")
-        self.assertRegex(styles, r"\.waiting-spinner\s*\{[^}]*width:\s*42px")
-        self.assertRegex(styles, r"\.waiting-spinner\s*\{[^}]*height:\s*42px")
+        self.assertRegex(styles, r"\.waiting-spinner\s*\{[^}]*width:\s*38px")
+        self.assertRegex(styles, r"\.waiting-spinner\s*\{[^}]*height:\s*38px")
         self.assertRegex(styles, r"\.waiting-spinner::before\s*\{[^}]*border-right-color:\s*var\(--primary\)")
         self.assertNotRegex(styles, r"\.waiting-spinner::before\s*\{[^}]*conic-gradient")
         self.assertRegex(styles, r"\.waiting-spinner\s*\{[^}]*spinner-breathe")
@@ -1934,6 +2101,8 @@ class WebUIStaticTaskTests(WebUIStaticTestCase):
         self.assertIn('data-task-status-id="${taskId}"', script)
         runtime_feedback_source = self._runtime_feedback_source()
         self.assertIn('import { cssEscape } from "./webui-utils";', runtime_feedback_source)
+        self.assertIn('const taskMetaDetailsText = (...args: any[]) => legacyMethod("taskMetaDetailsText", ...args);', runtime_feedback_source)
+        self.assertIn('const taskCardRuntimeText = (...args: any[]) => legacyMethod("taskCardRuntimeText", ...args);', runtime_feedback_source)
         self.assertIn("function activeElapsedTaskCards(", runtime_feedback_source)
         self.assertIn("const roots = [els.taskActiveList, els.taskList]", runtime_feedback_source)
         self.assertIn('root.querySelectorAll(`.task-card[data-task-id="${cssEscape(taskId)}"]`)', runtime_feedback_source)
@@ -1941,6 +2110,8 @@ class WebUIStaticTaskTests(WebUIStaticTestCase):
         self.assertNotIn("const root = els.taskHistoryShell || els.taskList", runtime_feedback_source)
         self.assertNotIn('root.querySelectorAll("[data-task-status-id]")', runtime_feedback_source)
         self.assertIn('statusRow.setAttribute("aria-label", accessibleLabel)', runtime_feedback_source)
+        self.assertIn("if (metaElement) setTextIfChanged(metaElement, taskMetaDetailsText(task));", runtime_feedback_source)
+        self.assertIn("if (runtimeElement) setTextIfChanged(runtimeElement, taskCardRuntimeText(task));", runtime_feedback_source)
         self.assertIn("function taskNeedsElapsedTick(", runtime_feedback_source)
         self.assertIn("if (!activeTasks.length) return;", runtime_feedback_source)
         self.assertIn("function setTextIfChanged(", runtime_feedback_source)

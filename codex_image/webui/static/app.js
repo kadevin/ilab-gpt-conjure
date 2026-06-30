@@ -25,6 +25,7 @@
     event.preventDefault();
     void call(methods, "runTask");
   }
+  var systemSettingsBackdropPointerDown = false;
   function bindWebUIEvents(state32, els43, methods) {
     call(methods, "bindShellUiEvents");
     call(methods, "bindFormControlEvents");
@@ -46,8 +47,14 @@
     });
     els43.saveToGalleryButton?.addEventListener("click", () => call(methods, "saveUploadToGallery"));
     els43.systemSettingsModalClose?.addEventListener("click", () => call(methods, "closeSystemSettingsModal"));
+    els43.systemSettingsModal?.addEventListener("pointerdown", (event) => {
+      systemSettingsBackdropPointerDown = event.target === els43.systemSettingsModal;
+    });
     els43.systemSettingsModal?.addEventListener("click", (event) => {
-      if (event.target === els43.systemSettingsModal) call(methods, "closeSystemSettingsModal");
+      if (event.target === els43.systemSettingsModal && systemSettingsBackdropPointerDown) {
+        call(methods, "closeSystemSettingsModal");
+      }
+      systemSettingsBackdropPointerDown = false;
     });
     els43.saveSettingsButton?.addEventListener("click", () => call(methods, "saveSettings"));
     els43.authSourceGroup?.addEventListener("click", (event) => call(methods, "handleAuthSourceClick", event));
@@ -143,6 +150,7 @@
       languageSelect: document.querySelector("#languageSelect"),
       sidebar: document.querySelector("#sidebar"),
       sidebarResizeHandle: document.querySelector("#sidebarResizeHandle"),
+      sidebarResizeShield: document.querySelector("#sidebarResizeShield"),
       authSourceGroup: document.querySelector("#authSourceGroup"),
       authSourceDetail: document.querySelector("#authSourceDetail"),
       apiSourceSettingsButton: document.querySelector("#apiSourceSettingsButton"),
@@ -176,6 +184,10 @@
       taskActiveList: document.querySelector("#taskActiveList"),
       taskList: document.querySelector("#taskList"),
       taskSearch: document.querySelector("#taskSearch"),
+      taskFilterButton: document.querySelector("#taskFilterButton"),
+      taskFilterPopover: document.querySelector("#taskFilterPopover"),
+      taskFilterClearButton: document.querySelector("#taskFilterClearButton"),
+      taskFilterActiveCount: document.querySelector("#taskFilterActiveCount"),
       taskRatioFilter: document.querySelector("#taskRatioFilter"),
       taskOrientationFilter: document.querySelector("#taskOrientationFilter"),
       taskPromptFidelityFilter: document.querySelector("#taskPromptFidelityFilter"),
@@ -522,6 +534,11 @@
     "taskStatus.retrying": "{reason}, retrying (attempt {attempt}/{max})",
     "taskStatus.nonRetryableAttempt": "Attempt {attempt}/{max}, not retryable",
     "taskStatus.manualRetryAvailable": "Stopped; failed images can be retried manually",
+    "taskStatus.waitingRetryShort": "Waiting retry",
+    "taskStatus.retryingShort": "Retrying",
+    "taskStatus.nonRetryableShort": "Not retryable",
+    "taskStatus.manualRetryShort": "Manual retry",
+    "taskStatus.stoppedShort": "Stopped",
     "taskStatus.runtime": "Duration {duration}",
     "taskStatus.runtimeCompleted": "Duration {duration} \xB7 completed {time}",
     "taskStatus.completedAt": "Completed {time}",
@@ -1410,6 +1427,11 @@
     "taskStatus.retrying": "{reason}, erneuter Versuch (Versuch {attempt}/{max})",
     "taskStatus.nonRetryableAttempt": "Versuch {attempt}/{max}, nicht wiederholbar",
     "taskStatus.manualRetryAvailable": "Angehalten; Fehlgeschlagene Bilder k\xF6nnen manuell erneut versucht werden",
+    "taskStatus.waitingRetryShort": "Wartet auf Retry",
+    "taskStatus.retryingShort": "Retry l\xE4uft",
+    "taskStatus.nonRetryableShort": "Nicht wiederholbar",
+    "taskStatus.manualRetryShort": "Manuell retry",
+    "taskStatus.stoppedShort": "Angehalten",
     "taskStatus.runtime": "Dauer {duration}",
     "taskStatus.runtimeCompleted": "Dauer {duration} \xB7 abgeschlossen {time}",
     "taskStatus.completedAt": "Abgeschlossen {time}",
@@ -2298,6 +2320,11 @@
     "taskStatus.retrying": "{reason}, reintentando (intento {attempt}/{max})",
     "taskStatus.nonRetryableAttempt": "Intento {attempt}/{max}, no reintentable",
     "taskStatus.manualRetryAvailable": "Detenido; las im\xE1genes fallidas se pueden volver a intentar manualmente",
+    "taskStatus.waitingRetryShort": "Esperando reintento",
+    "taskStatus.retryingShort": "Reintentando",
+    "taskStatus.nonRetryableShort": "No reintentable",
+    "taskStatus.manualRetryShort": "Reintento manual",
+    "taskStatus.stoppedShort": "Detenido",
     "taskStatus.runtime": "Duraci\xF3n {duration}",
     "taskStatus.runtimeCompleted": "Duraci\xF3n {duration} \xB7 completado {time}",
     "taskStatus.completedAt": "Completado {time}",
@@ -3186,6 +3213,11 @@
     "taskStatus.retrying": "{reason}, nouvelle tentative (tentative {attempt}/{max})",
     "taskStatus.nonRetryableAttempt": "Tentative {attempt}/{max}, non r\xE9essayable",
     "taskStatus.manualRetryAvailable": "Arr\xEAt\xE9; les images ayant \xE9chou\xE9 peuvent \xEAtre r\xE9essay\xE9es manuellement",
+    "taskStatus.waitingRetryShort": "En attente",
+    "taskStatus.retryingShort": "Nouvel essai",
+    "taskStatus.nonRetryableShort": "Non r\xE9essayable",
+    "taskStatus.manualRetryShort": "R\xE9essai manuel",
+    "taskStatus.stoppedShort": "Arr\xEAt\xE9",
     "taskStatus.runtime": "Dur\xE9e {duration}",
     "taskStatus.runtimeCompleted": "Dur\xE9e {duration} \xB7 compl\xE9t\xE9 {time}",
     "taskStatus.completedAt": "Termin\xE9 {time}",
@@ -4074,6 +4106,11 @@
     "taskStatus.retrying": "{reason}\u3001\u518D\u8A66\u884C\u4E2D ({attempt}/{max}\u3092\u8A66\u884C)",
     "taskStatus.nonRetryableAttempt": "{attempt}/{max}\u3092\u8A66\u884C\u3057\u307E\u3059\u3002\u518D\u8A66\u884C\u3067\u304D\u307E\u305B\u3093",
     "taskStatus.manualRetryAvailable": "\u505C\u6B62\u3057\u307E\u3057\u305F\u3002\u5931\u6557\u3057\u305F\u30A4\u30E1\u30FC\u30B8\u306F\u624B\u52D5\u3067\u518D\u8A66\u884C\u3067\u304D\u307E\u3059",
+    "taskStatus.waitingRetryShort": "\u518D\u8A66\u884C\u5F85\u3061",
+    "taskStatus.retryingShort": "\u518D\u8A66\u884C\u4E2D",
+    "taskStatus.nonRetryableShort": "\u518D\u8A66\u884C\u4E0D\u53EF",
+    "taskStatus.manualRetryShort": "\u624B\u52D5\u518D\u8A66\u884C",
+    "taskStatus.stoppedShort": "\u505C\u6B62",
     "taskStatus.runtime": "\u671F\u9593{duration}",
     "taskStatus.runtimeCompleted": "\u671F\u9593{duration}\xB7 \u5B8C\u4E86{time}",
     "taskStatus.completedAt": "\u5B8C\u4E86{time}",
@@ -4962,6 +4999,11 @@
     "taskStatus.retrying": "{reason}, \uC7AC\uC2DC\uB3C4 \uC911({attempt}/{max}\uC2DC\uB3C4)",
     "taskStatus.nonRetryableAttempt": "{attempt}/{max}\uC2DC\uB3C4, \uC7AC\uC2DC\uB3C4\uD560 \uC218 \uC5C6\uC74C",
     "taskStatus.manualRetryAvailable": "\uC911\uC9C0\uB418\uC5C8\uC2B5\uB2C8\uB2E4. \uC2E4\uD328\uD55C \uC774\uBBF8\uC9C0\uB294 \uC218\uB3D9\uC73C\uB85C \uB2E4\uC2DC \uC2DC\uB3C4\uD560 \uC218 \uC788\uC2B5\uB2C8\uB2E4.",
+    "taskStatus.waitingRetryShort": "\uC7AC\uC2DC\uB3C4 \uB300\uAE30",
+    "taskStatus.retryingShort": "\uC7AC\uC2DC\uB3C4 \uC911",
+    "taskStatus.nonRetryableShort": "\uC7AC\uC2DC\uB3C4 \uBD88\uAC00",
+    "taskStatus.manualRetryShort": "\uC218\uB3D9 \uC7AC\uC2DC\uB3C4",
+    "taskStatus.stoppedShort": "\uC911\uC9C0\uB428",
     "taskStatus.runtime": "\uAE30\uAC04{duration}",
     "taskStatus.runtimeCompleted": "\uAE30\uAC04{duration}\xB7 \uC644\uB8CC{time}",
     "taskStatus.completedAt": "\uC644\uB8CC\uB428{time}",
@@ -5850,6 +5892,11 @@
     "taskStatus.retrying": "{reason}, tentando novamente (tentativa {attempt}/{max})",
     "taskStatus.nonRetryableAttempt": "Tentativa {attempt}/{max}, n\xE3o \xE9 poss\xEDvel tentar novamente",
     "taskStatus.manualRetryAvailable": "Parado; imagens com falha podem ser repetidas manualmente",
+    "taskStatus.waitingRetryShort": "Aguardando retry",
+    "taskStatus.retryingShort": "Tentando novamente",
+    "taskStatus.nonRetryableShort": "Sem nova tentativa",
+    "taskStatus.manualRetryShort": "Retry manual",
+    "taskStatus.stoppedShort": "Parado",
     "taskStatus.runtime": "Dura\xE7\xE3o {duration}",
     "taskStatus.runtimeCompleted": "Dura\xE7\xE3o {duration} \xB7 conclu\xEDdo {time}",
     "taskStatus.completedAt": "Conclu\xEDdo {time}",
@@ -6738,6 +6785,11 @@
     "taskStatus.retrying": "{reason}, \u043F\u043E\u0432\u0442\u043E\u0440\u043D\u0430\u044F \u043F\u043E\u043F\u044B\u0442\u043A\u0430 (\u043F\u043E\u043F\u044B\u0442\u043A\u0430 {attempt}/{max})",
     "taskStatus.nonRetryableAttempt": "\u041F\u043E\u043F\u044B\u0442\u043A\u0430 {attempt}/{max}, \u043F\u043E\u0432\u0442\u043E\u0440\u043D\u0430\u044F \u043F\u043E\u043F\u044B\u0442\u043A\u0430 \u043D\u0435\u0432\u043E\u0437\u043C\u043E\u0436\u043D\u0430.",
     "taskStatus.manualRetryAvailable": "\u041E\u0441\u0442\u0430\u043D\u043E\u0432\u0438\u043B\u0441\u044F; \u043D\u0435\u0443\u0434\u0430\u0447\u043D\u044B\u0439 images \u043C\u043E\u0436\u043D\u043E \u043F\u043E\u0432\u0442\u043E\u0440\u0438\u0442\u044C \u0432\u0440\u0443\u0447\u043D\u0443\u044E",
+    "taskStatus.waitingRetryShort": "\u0416\u0434\u0435\u0442 \u043F\u043E\u0432\u0442\u043E\u0440\u0430",
+    "taskStatus.retryingShort": "\u041F\u043E\u0432\u0442\u043E\u0440",
+    "taskStatus.nonRetryableShort": "\u0411\u0435\u0437 \u043F\u043E\u0432\u0442\u043E\u0440\u0430",
+    "taskStatus.manualRetryShort": "\u0420\u0443\u0447\u043D\u043E\u0439 \u043F\u043E\u0432\u0442\u043E\u0440",
+    "taskStatus.stoppedShort": "\u041E\u0441\u0442\u0430\u043D\u043E\u0432\u043B\u0435\u043D\u043E",
     "taskStatus.runtime": "\u041F\u0440\u043E\u0434\u043E\u043B\u0436\u0438\u0442\u0435\u043B\u044C\u043D\u043E\u0441\u0442\u044C {duration}",
     "taskStatus.runtimeCompleted": "\u041F\u0440\u043E\u0434\u043E\u043B\u0436\u0438\u0442\u0435\u043B\u044C\u043D\u043E\u0441\u0442\u044C {duration} \xB7 \u0437\u0430\u0432\u0435\u0440\u0448\u0435\u043D\u043E {time}",
     "taskStatus.completedAt": "\u0417\u0430\u0432\u0435\u0440\u0448\u0435\u043D\u043E {time}",
@@ -7626,6 +7678,11 @@
     "taskStatus.retrying": "{reason}, nuovo tentativo (tentativo {attempt}/{max})",
     "taskStatus.nonRetryableAttempt": "Tentativo {attempt}/{max}, non riprovabile",
     "taskStatus.manualRetryAvailable": "fermato; fallito images pu\xF2 essere riprovato manualmente",
+    "taskStatus.waitingRetryShort": "In attesa",
+    "taskStatus.retryingShort": "Riprovo",
+    "taskStatus.nonRetryableShort": "Non riprovabile",
+    "taskStatus.manualRetryShort": "Riprova manuale",
+    "taskStatus.stoppedShort": "Fermato",
     "taskStatus.runtime": "Durata {duration}",
     "taskStatus.runtimeCompleted": "Durata {duration} \xB7 completato {time}",
     "taskStatus.completedAt": "Completato {time}",
@@ -8514,6 +8571,11 @@
     "taskStatus.retrying": "{reason}, \u092A\u0941\u0928\u0903 \u092A\u094D\u0930\u092F\u093E\u0938 \u0915\u0930 \u0930\u0939\u093E \u0939\u0942\u0902 (\u092A\u094D\u0930\u092F\u093E\u0938 {attempt}/{max})",
     "taskStatus.nonRetryableAttempt": "\u092A\u094D\u0930\u092F\u093E\u0938 {attempt}/{max}, \u092A\u0941\u0928\u0903 \u092A\u094D\u0930\u092F\u093E\u0938 \u092F\u094B\u0917\u094D\u092F \u0928\u0939\u0940\u0902",
     "taskStatus.manualRetryAvailable": "\u0930\u0941\u0915\u093E \u0939\u0941\u0906; \u0935\u093F\u092B\u0932 \u091A\u093F\u0924\u094D\u0930\u094B\u0902 \u0915\u094B \u092E\u0948\u0928\u094D\u092F\u0941\u0905\u0932 \u0930\u0942\u092A \u0938\u0947 \u092A\u0941\u0928\u0903 \u092A\u094D\u0930\u092F\u093E\u0938 \u0915\u093F\u092F\u093E \u091C\u093E \u0938\u0915\u0924\u093E \u0939\u0948",
+    "taskStatus.waitingRetryShort": "\u0930\u0940\u091F\u094D\u0930\u093E\u0908 \u092A\u094D\u0930\u0924\u0940\u0915\u094D\u0937\u093E",
+    "taskStatus.retryingShort": "\u0930\u0940\u091F\u094D\u0930\u093E\u0908 \u0939\u094B \u0930\u0939\u093E",
+    "taskStatus.nonRetryableShort": "\u0930\u0940\u091F\u094D\u0930\u093E\u0908 \u0928\u0939\u0940\u0902",
+    "taskStatus.manualRetryShort": "\u092E\u0948\u0928\u0941\u0905\u0932 \u0930\u0940\u091F\u094D\u0930\u093E\u0908",
+    "taskStatus.stoppedShort": "\u0930\u0941\u0915\u093E \u0939\u0941\u0906",
     "taskStatus.runtime": "\u0905\u0935\u0927\u093F {duration}",
     "taskStatus.runtimeCompleted": "\u0905\u0935\u0927\u093F {duration} \xB7 \u092A\u0942\u0930\u094D\u0923 {time}",
     "taskStatus.completedAt": "\u092A\u0942\u0930\u094D\u0923 {time}",
@@ -9402,6 +9464,11 @@
     "taskStatus.retrying": "{reason}\uFF0C\u91CD\u8BD5\u4E2D\uFF08\u7B2C {attempt}/{max} \u6B21\u5C1D\u8BD5\uFF09",
     "taskStatus.nonRetryableAttempt": "\u7B2C {attempt}/{max} \u6B21\uFF0C\u4E0D\u53EF\u91CD\u8BD5",
     "taskStatus.manualRetryAvailable": "\u5DF2\u505C\u6B62\uFF0C\u53EF\u624B\u52A8\u91CD\u8BD5\u5931\u8D25\u56FE\u7247",
+    "taskStatus.waitingRetryShort": "\u7B49\u5F85\u91CD\u8BD5",
+    "taskStatus.retryingShort": "\u91CD\u8BD5\u4E2D",
+    "taskStatus.nonRetryableShort": "\u4E0D\u53EF\u91CD\u8BD5",
+    "taskStatus.manualRetryShort": "\u53EF\u624B\u52A8\u91CD\u8BD5",
+    "taskStatus.stoppedShort": "\u5DF2\u505C\u6B62",
     "taskStatus.runtime": "\u8017\u65F6 {duration}",
     "taskStatus.runtimeCompleted": "\u8017\u65F6 {duration} \xB7 \u5B8C\u6210 {time}",
     "taskStatus.completedAt": "\u5B8C\u6210 {time}",
@@ -10290,6 +10357,11 @@
     "taskStatus.retrying": "{reason}\uFF0C\u91CD\u8A66\u4E2D\uFF08\u7B2C{attempt}/{max}\u6B21\u5617\u8A66\uFF09",
     "taskStatus.nonRetryableAttempt": "\u7B2C{attempt}/{max}\u6B21\uFF0C\u4E0D\u53EF\u91CD\u8A66",
     "taskStatus.manualRetryAvailable": "\u5DF2\u505C\u6B62\uFF0C\u53EF\u624B\u52D5\u91CD\u8A66\u5931\u6557\u5716\u7247",
+    "taskStatus.waitingRetryShort": "\u7B49\u5F85\u91CD\u8A66",
+    "taskStatus.retryingShort": "\u91CD\u8A66\u4E2D",
+    "taskStatus.nonRetryableShort": "\u4E0D\u53EF\u91CD\u8A66",
+    "taskStatus.manualRetryShort": "\u53EF\u624B\u52D5\u91CD\u8A66",
+    "taskStatus.stoppedShort": "\u5DF2\u505C\u6B62",
     "taskStatus.runtime": "\u8017\u6642{duration}",
     "taskStatus.runtimeCompleted": "\u8017\u6642{duration}\xB7 \u5B8C\u6210{time}",
     "taskStatus.completedAt": "\u5B8C\u6210{time}",
@@ -11178,6 +11250,11 @@
     "taskStatus.retrying": "{reason}\uFF0C\u91CD\u8A66\u4E2D\uFF08\u7B2C{attempt}/{max}\u6B21\u5617\u8A66\uFF09",
     "taskStatus.nonRetryableAttempt": "\u7B2C{attempt}/{max}\u6B21\uFF0C\u4E0D\u53EF\u91CD\u8A66",
     "taskStatus.manualRetryAvailable": "\u5DF2\u505C\u6B62\uFF0C\u53EF\u624B\u52D5\u91CD\u8A66\u5931\u6557\u5716\u7247",
+    "taskStatus.waitingRetryShort": "\u7B49\u5F85\u91CD\u8A66",
+    "taskStatus.retryingShort": "\u91CD\u8A66\u4E2D",
+    "taskStatus.nonRetryableShort": "\u4E0D\u53EF\u91CD\u8A66",
+    "taskStatus.manualRetryShort": "\u53EF\u624B\u52D5\u91CD\u8A66",
+    "taskStatus.stoppedShort": "\u5DF2\u505C\u6B62",
     "taskStatus.runtime": "\u8017\u6642{duration}",
     "taskStatus.runtimeCompleted": "\u8017\u6642{duration}\xB7 \u5B8C\u6210{time}",
     "taskStatus.completedAt": "\u5B8C\u6210{time}",
@@ -12141,8 +12218,8 @@
   var revokeTaskUploadPreviewUrls = (...args) => legacyMethod("revokeTaskUploadPreviewUrls", ...args);
   var taskProgressStartValue = (...args) => legacyMethod("taskProgressStartValue", ...args);
   var taskStatusAccessibleLabel = (...args) => legacyMethod("taskStatusAccessibleLabel", ...args);
-  var taskMetaText = (...args) => legacyMethod("taskMetaText", ...args);
-  var taskRuntimeText = (...args) => legacyMethod("taskRuntimeText", ...args);
+  var taskMetaDetailsText = (...args) => legacyMethod("taskMetaDetailsText", ...args);
+  var taskCardRuntimeText = (...args) => legacyMethod("taskCardRuntimeText", ...args);
   var taskRetryStateText = (...args) => legacyMethod("taskRetryStateText", ...args);
   var timestampMs = (...args) => legacyMethod("timestampMs", ...args);
   var elapsedSecondsSince = (...args) => legacyMethod("elapsedSecondsSince", ...args);
@@ -12244,9 +12321,9 @@
       }
     }
     const metaElement = card.querySelector("[data-task-meta-id]");
-    if (metaElement) setTextIfChanged(metaElement, taskMetaText(task));
+    if (metaElement) setTextIfChanged(metaElement, taskMetaDetailsText(task));
     const runtimeElement = card.querySelector("[data-task-runtime-id]");
-    if (runtimeElement) setTextIfChanged(runtimeElement, taskRuntimeText(task));
+    if (runtimeElement) setTextIfChanged(runtimeElement, taskCardRuntimeText(task));
     const retryElement = card.querySelector("[data-task-retry-id]");
     if (retryElement) setTextIfChanged(retryElement, taskRetryStateText(task));
   }
@@ -12459,6 +12536,7 @@
       realtimeSource: null,
       realtimeSnapshotNeedsArchiveMigration: false,
       queueDragTaskId: null,
+      activeTaskGroupCollapsed: false,
       expandedTaskGroupKey: null,
       expandedTaskGroupAnimationPending: false,
       taskNotifications: [],
@@ -29385,8 +29463,7 @@ ${hint}` : hint;
       if (!response.ok) throw new Error(data.detail || translate("apiSettings.loadFailed"));
       state9.apiSettings = mergeApiProviderKeys(data.settings || {});
       populateApiSettingsForm();
-      updateModeSpecificSettings();
-      updateRequestPreview5();
+      renderAuthSourceAfterProviderChange();
     } catch (error) {
       setApiSettingsFeedback(error.message || translate("apiSettings.loadFailed"), "error");
     }
@@ -34628,6 +34705,12 @@ ${galleryText}`;
   function taskBackendLabel2(...args) {
     return legacyMethod29("taskBackendLabel", ...args);
   }
+  function taskApiProviderId2(...args) {
+    return legacyMethod29("taskApiProviderId", ...args);
+  }
+  function taskApiProviderLabel2(...args) {
+    return legacyMethod29("taskApiProviderLabel", ...args);
+  }
   function formatTaskStatus2(...args) {
     return legacyMethod29("formatTaskStatus", ...args);
   }
@@ -34656,9 +34739,11 @@ ${galleryText}`;
   var taskImageBlockStates = (...args) => legacyMethod29("taskImageBlockStates", ...args);
   var compressTaskImageBlockStates = (...args) => legacyMethod29("compressTaskImageBlockStates", ...args);
   var taskImageStatusCounts = (...args) => legacyMethod29("taskImageStatusCounts", ...args);
-  var taskFailureMessage = (...args) => legacyMethod29("taskFailureMessage", ...args);
   var taskRetryStateText2 = (...args) => legacyMethod29("taskRetryStateText", ...args);
-  var taskRuntimeText2 = (...args) => legacyMethod29("taskRuntimeText", ...args);
+  var taskCardRetryStateText = (...args) => legacyMethod29("taskCardRetryStateText", ...args);
+  var taskDurationText = (...args) => legacyMethod29("taskDurationText", ...args);
+  var taskRuntimeText = (...args) => legacyMethod29("taskRuntimeText", ...args);
+  var taskCompletionTimestampText = (...args) => legacyMethod29("taskCompletionTimestampText", ...args);
   var taskCompletionTimestampTitle = (...args) => legacyMethod29("taskCompletionTimestampTitle", ...args);
   var timestampMs2 = (...args) => legacyMethod29("timestampMs", ...args);
   function renderTasks2(options = {}) {
@@ -34953,6 +35038,9 @@ ${galleryText}`;
         changed = true;
       }
     });
+    if (changed) {
+      getLegacyBridge().methods.updateTaskFilterSummary?.();
+    }
     return changed;
   }
   function revealActiveTaskGroup() {
@@ -35058,27 +35146,40 @@ ${galleryText}`;
     const groupKey = escapeHtml13(group.key);
     const sections = activeTaskSections(group.tasks || []);
     const dispatchPending = Boolean(legacyMethod29("isQueueDispatchPending"));
+    const collapsed = Boolean(state19.activeTaskGroupCollapsed);
     const body = [
       activeTaskSectionHtml("running", translate("taskGroup.running"), sections.running),
       activeTaskSectionHtml("waiting", translate("taskGroup.waiting"), sections.waiting),
       !sections.running.length && !sections.waiting.length && dispatchPending ? activeTaskDispatchPendingHtml() : ""
     ].join("");
+    const activeLabel = escapeHtml13(group.label);
+    const activeCount = group.tasks.length;
+    const toggleLabel = escapeHtml13(formatTranslation(collapsed ? "taskGroup.expand" : "taskGroup.collapse", { label: group.label }));
     return `
-    <section class="task-group task-group-expanded task-group-active" data-task-group="${groupKey}">
-      <div
+    <section class="task-group task-group-expanded task-group-active${collapsed ? " task-active-collapsed" : ""}" data-task-group="${groupKey}">
+      <button
         class="task-group-header task-group-header-split task-active-group-header"
-        role="heading"
-        aria-level="2"
+        type="button"
+        data-active-task-group-toggle="true"
+        aria-expanded="${collapsed ? "false" : "true"}"
+        aria-label="${toggleLabel}"
       >
         <span class="task-group-label-button">
           <span class="task-group-title">
-            <span class="task-group-label">${escapeHtml13(group.label)}</span>
+            <span class="task-group-label">${activeLabel}</span>
             <span class="task-group-count-separator" aria-hidden="true"> \xB7 </span>
-            <span class="task-group-count">${group.tasks.length}</span>
+            <span class="task-group-count">${activeCount}</span>
           </span>
         </span>
-      </div>
-      <div class="task-group-items task-group-items-expanded">
+        <span class="task-history-anchor-arrow" aria-hidden="true">
+          <span class="task-group-toggle" aria-hidden="true">
+            <svg class="task-group-toggle-icon" viewBox="0 0 12 12" focusable="false">
+              <path d="M4 2.5 8 6 4 9.5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"/>
+            </svg>
+          </span>
+        </span>
+      </button>
+      <div class="task-group-items task-group-items-expanded" data-active-task-group-items aria-hidden="${collapsed ? "true" : "false"}"${collapsed ? " inert" : ""}>
         ${body}
       </div>
     </section>
@@ -35241,17 +35342,42 @@ ${galleryText}`;
     const unreadClass = unread ? " unread" : "";
     const statusClass = task.status ? ` ${escapeHtml13(task.status)}` : "";
     const title = escapeHtml13(task.prompt || task.mode || "Untitled");
-    const statusLight = taskStatusLightHtml(task);
-    const statusMeta = escapeHtml13(taskMetaDetailsText(task));
-    const imageBlocks = taskImageBlocksHtml(task);
-    const imageSummary = escapeHtml13(taskImageSummaryText(task));
-    const retryText = taskRetryStateText2(task);
-    const runtime = taskRuntimeText2(task);
+    const showImageSummary = taskImageSummaryVisible(task);
+    const imageBlocks = showImageSummary ? taskImageBlocksHtml(task) : "";
+    const imageSummary = showImageSummary ? escapeHtml13(taskImageSummaryText(task)) : "";
+    const imageSummaryHtml = imageSummary ? `<span class="task-image-summary">${imageSummary}</span>` : "";
+    const retryFullText = taskRetryStateText2(task);
+    const retryText = taskCardRetryStateText(task) || retryFullText;
+    const statusLabel = taskStatusLabelHtml(task);
+    const statusMeta = escapeHtml13(retryText ? taskMetaDetailsWithCompletionText(task) : taskMetaDetailsText2(task));
+    const taskTime = taskCardCompletionTimeText(task);
+    const runtime = taskCardRuntimeText2(task);
+    const runtimeFullText = taskRuntimeText(task);
     const completionTitle = taskCompletionTimestampTitle(task);
     const taskId = escapeHtml13(task.task_id);
-    const runtimeTitle = completionTitle ? ` title="${escapeHtml13(completionTitle)}"` : "";
-    const runtimeHtml = runtime ? `<div class="task-runtime" data-task-runtime-id="${taskId}" data-task-completed-at-id="${taskId}"${runtimeTitle}>${escapeHtml13(runtime)}</div>` : "";
-    const retryHtml = retryText ? `<div class="task-retry-state" data-task-retry-id="${taskId}">${escapeHtml13(retryText)}</div>` : "";
+    const runtimeTitleText = [runtimeFullText, completionTitle].filter(Boolean).join(" \xB7 ");
+    const runtimeTitle = runtimeTitleText ? ` title="${escapeHtml13(runtimeTitleText)}"` : "";
+    const runtimeHtml = runtime ? `<span class="task-runtime" data-task-runtime-id="${taskId}" data-task-completed-at-id="${taskId}"${runtimeTitle}>${escapeHtml13(runtime)}</span>` : "";
+    const imageRow = showImageSummary ? `
+          <span class="task-image-row">
+            ${imageBlocks}
+            <span class="task-status-row task-status-inline" aria-label="${escapeHtml13(taskStatusAccessibleLabel2(task))}">
+              ${statusLabel}
+            </span>
+            ${imageSummaryHtml}
+          </span>
+    ` : "";
+    const retryTitle = retryFullText && retryFullText !== retryText ? ` title="${escapeHtml13(retryFullText)}"` : "";
+    const retryHtml = retryText ? `<span class="task-retry-state" data-task-retry-id="${taskId}"${retryTitle}>${escapeHtml13(retryText)}</span>` : "";
+    const timeHtml = !retryText && taskTime ? `<span class="task-card-time">${escapeHtml13(taskTime)}</span>` : "";
+    const detailRightHtml = retryHtml || timeHtml;
+    const detailRowClass = detailRightHtml ? "task-detail-row" : "task-detail-row task-detail-row-meta-only";
+    const detailRow = statusMeta || detailRightHtml ? `
+        <div class="${detailRowClass}">
+          <span class="task-status-meta" data-task-meta-id="${taskId}">${statusMeta}</span>
+          ${detailRightHtml}
+        </div>
+    ` : "";
     const batchSelected = state19.batchSelectedTaskIds.includes(String(task.task_id));
     const batchClass = state19.batchMode ? " batch-mode" : "";
     const batchSelectedClass = batchSelected ? " batch-selected" : "";
@@ -35273,20 +35399,15 @@ ${galleryText}`;
       ${batchSelect}
       ${image}
       <div class="task-info">
+        <div class="task-meta-row">
+          ${imageRow}
+          ${runtimeHtml}
+        </div>
         <div class="task-title-row">
           ${unreadDot}
           <div class="task-title">${title}</div>
         </div>
-        <div class="task-status-row" aria-label="${escapeHtml13(taskStatusAccessibleLabel2(task))}">
-          ${statusLight}
-          <span class="task-status-meta">${statusMeta}</span>
-        </div>
-        <div class="task-image-row">
-          ${imageBlocks}
-          <span class="task-image-summary">${imageSummary}</span>
-        </div>
-        ${retryHtml}
-        ${runtimeHtml}
+        ${detailRow}
       </div>
       ${queueActions}
       ${taskActions}
@@ -35408,6 +35529,7 @@ ${galleryText}`;
       filters,
       activeQueue: activeQueueTaskListRenderKey(),
       activeGroup: activeGroup ? [activeGroup.key, activeGroup.label, activeGroup.tasks.length] : null,
+      activeTaskGroupCollapsed: Boolean(state19.activeTaskGroupCollapsed),
       batchMode: state19.batchMode,
       batchSelectedTaskIds: state19.batchSelectedTaskIds.map(String).sort(),
       archivedTaskIds: state19.tasks.filter(taskArchived).map((task) => String(task.task_id)).sort(),
@@ -35473,8 +35595,8 @@ ${galleryText}`;
       const imageToImageLabel = escapeHtml13(translate("taskCard.imageToImageThumb"));
       return `
       <div class="${safeClassName} task-thumb-stack" aria-label="${imageToImageLabel}">
-        <img class="task-thumb-reference" src="${escapeHtml13(inputPreviewUrl)}" alt="" loading="lazy" decoding="async">
-        <img class="task-thumb-output" src="${escapeHtml13(imageUrl)}" alt="" loading="lazy" decoding="async">
+        <img class="task-thumb-reference" src="${escapeHtml13(inputPreviewUrl)}" alt="" loading="lazy" decoding="async" draggable="false">
+        <img class="task-thumb-output" src="${escapeHtml13(imageUrl)}" alt="" loading="lazy" decoding="async" draggable="false">
         ${loadingSpinner}
       </div>
     `;
@@ -35484,7 +35606,7 @@ ${galleryText}`;
       const textBadge = escapeHtml13(translate("taskCard.textBadge"));
       return `
       <div class="${safeClassName} task-thumb-single" aria-label="${textToImageLabel}">
-        <img class="task-thumb-single-image" src="${escapeHtml13(imageUrl)}" alt="" loading="lazy" decoding="async">
+        <img class="task-thumb-single-image" src="${escapeHtml13(imageUrl)}" alt="" loading="lazy" decoding="async" draggable="false">
         <span class="task-thumb-mode-badge" aria-hidden="true">${textBadge}</span>
       </div>
     `;
@@ -35494,38 +35616,49 @@ ${galleryText}`;
     }
     return `<div class="${safeClassName} running-thumb"><span></span></div>`;
   }
-  function taskStatusLightHtml(task) {
-    const tone = taskStatusTone(task);
+  function taskStatusLabelHtml(task) {
     const label = escapeHtml13(formatTaskStatus2(task) || translate("taskStatus.unknown"));
     const taskId = escapeHtml13(task?.task_id || "");
-    return `
-    <span class="task-status-light ${tone}" aria-hidden="true"></span>
-    <span class="task-status-label" data-task-status-id="${taskId}">${label}</span>
-  `;
-  }
-  function taskStatusTone(task) {
-    const status = String(task?.status || "");
-    if (["failed", "partial_failed"].includes(status)) return "failed";
-    if (status === "completed") return "completed";
-    if (status === "running") return "running";
-    if (status === "queued" || status === "submitting") return "queued";
-    return "unknown";
+    return `<span class="task-status-label" data-task-status-id="${taskId}">${label}</span>`;
   }
   function taskStatusAccessibleLabel2(task) {
-    return [formatTaskStatus2(task) || translate("taskStatus.unknown"), taskImageSummaryText(task), taskMetaDetailsText(task)].filter(Boolean).join(" \xB7 ");
+    return [formatTaskStatus2(task) || translate("taskStatus.unknown"), taskImageSummaryText(task), taskMetaDetailsText2(task)].filter(Boolean).join(" \xB7 ");
   }
-  function taskMetaDetailsText(task) {
-    const failure = taskFailureMessage(task);
-    const retryText = taskRetryStateText2(task);
+  function taskMetaDetailsText2(task) {
     const size = task.output_size || task.params?.size || "";
-    const backend = taskBackendLabel2(task);
-    return [failure, retryText, size, backend].filter(Boolean).join(" \xB7 ");
+    const backend = taskCardProviderLabel(task);
+    return [size, backend].filter(Boolean).join(" \xB7 ");
+  }
+  function taskMetaDetailsWithCompletionText(task) {
+    const statusMeta = taskMetaDetailsText2(task);
+    const completion = taskCompletionTimestampText(task);
+    return [statusMeta, completion?.shortText].filter(Boolean).join(" \xB7 ");
+  }
+  function taskCardCompletionTimeText(task) {
+    const completion = taskCompletionTimestampText(task);
+    return completion?.shortText || "";
+  }
+  function taskCardProviderLabel(task) {
+    const providerLabel = String(taskApiProviderLabel2(task) || "").trim();
+    const providerId = String(taskApiProviderId2(task) || "").trim();
+    if (providerLabel && (!providerId || providerLabel !== providerId)) {
+      const providerIdSuffix = providerId ? `(${providerId})` : "";
+      return providerIdSuffix && providerLabel.endsWith(providerIdSuffix) ? providerLabel.slice(0, -providerIdSuffix.length).trim() : providerLabel;
+    }
+    const backend = String(task?.backend || task?.requested_backend || "").trim();
+    if (backend === "codex_images") return "Codex";
+    if (backend === "codex_responses") return "Responses";
+    if (backend === "openai_responses") return "Responses";
+    return "";
+  }
+  function taskCardRuntimeText2(task) {
+    return taskDurationText(task);
   }
   function taskImageBlocksHtml(task) {
     const states = taskImageBlockStates(task);
     const visibleStates = compressTaskImageBlockStates(states);
     const total = states.length;
-    const visibleCount = Math.min(total, 12);
+    const visibleCount = Math.min(total, 4);
     const compressedClass = states.length > visibleStates.length ? " compressed" : "";
     const blocks = visibleStates.map((blockState) => `<span class="task-image-block ${blockState}" aria-hidden="true"></span>`).join("");
     return `<div class="task-image-progress${compressedClass}" style="--task-block-count: ${visibleCount}" aria-hidden="true">${blocks}</div>`;
@@ -35533,22 +35666,21 @@ ${galleryText}`;
   function taskImageSummaryText(task) {
     const states = taskImageBlockStates(task);
     const counts = taskImageStatusCounts(states);
-    const parts = [
-      formatTranslation("taskCard.count", { count: states.length }),
-      formatTranslation("taskCard.successCount", { count: counts.completed }),
-      formatTranslation("taskCard.failedCount", { count: counts.failed })
-    ];
+    const parts = [];
     if (counts.running) parts.push(formatTranslation("taskCard.runningCount", { count: counts.running }));
     if (counts.queued || counts.waiting) {
       parts.push(formatTranslation("taskCard.waitingCount", { count: counts.queued + counts.waiting }));
     }
     return parts.join(" \xB7 ");
   }
-  function taskMetaText2(task) {
-    const failure = taskFailureMessage(task);
-    const status = failure ? `${formatTaskStatus2(task)} \xB7 ${failure}` : formatTaskStatus2(task);
+  function taskImageSummaryVisible(task) {
+    void task;
+    return true;
+  }
+  function taskMetaText(task) {
+    const status = formatTaskStatus2(task);
     const size = task.output_size || task.params?.size || "";
-    const backend = taskBackendLabel2(task);
+    const backend = taskCardProviderLabel(task);
     return [status, size, backend].filter(Boolean).join(" \xB7 ");
   }
   function initTaskListRenderFeature() {
@@ -35583,13 +35715,14 @@ ${galleryText}`;
       taskCardElement,
       updateTaskSelectionVisuals,
       taskThumbHtml,
-      taskStatusLightHtml,
-      taskStatusTone,
+      taskStatusLabelHtml,
       taskStatusAccessibleLabel: taskStatusAccessibleLabel2,
-      taskMetaDetailsText,
+      taskMetaDetailsText: taskMetaDetailsText2,
+      taskCardProviderLabel,
+      taskCardRuntimeText: taskCardRuntimeText2,
       taskImageBlocksHtml,
       taskImageSummaryText,
-      taskMetaText: taskMetaText2
+      taskMetaText
     });
   }
 
@@ -35757,13 +35890,14 @@ ${galleryText}`;
       shell.querySelectorAll(".task-history-anchor-row, .task-group-header-split")
     ).map((node) => {
       const key = String(
-        node.dataset.taskGroupAnchorKey || node.dataset.taskGroupToggleKey || ""
+        node.dataset.activeTaskGroupToggle ? "active" : node.dataset.taskGroupAnchorKey || node.dataset.taskGroupToggleKey || ""
       );
       if (!key) return null;
       const rect = node.getBoundingClientRect();
+      const activeExpanded = node.dataset.activeTaskGroupToggle ? node.getAttribute("aria-expanded") === "true" : null;
       return {
         key,
-        kind: node.classList.contains("task-history-anchor-row") ? "anchor" : "expanded",
+        kind: activeExpanded === null ? node.classList.contains("task-history-anchor-row") ? "anchor" : "expanded" : activeExpanded ? "expanded" : "anchor",
         node,
         rect: {
           top: rect.top,
@@ -35984,13 +36118,15 @@ ${galleryText}`;
       const title = escapeHtml15(task.prompt || task.mode || "Untitled");
       const status = escapeHtml15(formatTaskStatus3(task));
       const size = escapeHtml15(task.output_size || task.params?.size || "");
+      const provider = escapeHtml15(legacyMethod31("taskCardProviderLabel", task) || "");
+      const meta = [status, size, provider].filter(Boolean).join(" \xB7 ");
       const taskId = escapeHtml15(task.task_id);
       return `
       <article class="archive-card" data-archive-select-task-id="${taskId}">
         ${image}
         <div class="archive-info">
           <strong>${title}</strong>
-          <span>${status} \xB7 ${size}</span>
+          <span>${meta}</span>
         </div>
         <div class="archive-card-actions">
           <button class="ghost-button text-sm" type="button" data-restore-archive-task-id="${taskId}">${translate("archive.restore")}</button>
@@ -37132,6 +37268,57 @@ ${galleryText}`;
   var closeArchiveModal2 = (...args) => legacyMethod35("closeArchiveModal", ...args);
   var taskListControlsInitialized = false;
   var taskListControlEventsBound = false;
+  function taskFilterControls() {
+    return [els34.taskRatioFilter, els34.taskOrientationFilter, els34.taskPromptFidelityFilter, els34.taskResolutionFilter].filter(Boolean);
+  }
+  function activeTaskFilterCount() {
+    return taskFilterControls().filter((element2) => Boolean(element2.value)).length;
+  }
+  function setTaskFilterPopoverOpen(open) {
+    if (!els34.taskFilterPopover || !els34.taskFilterButton) return;
+    els34.taskFilterPopover.hidden = !open;
+    els34.taskFilterButton.setAttribute("aria-expanded", open ? "true" : "false");
+    els34.taskFilterButton.classList.toggle("is-open", open);
+  }
+  function toggleTaskFilterPopover() {
+    setTaskFilterPopoverOpen(Boolean(els34.taskFilterPopover?.hidden));
+  }
+  function clearTaskFilters(options = {}) {
+    let changed = false;
+    taskFilterControls().forEach((element2) => {
+      if (element2.value) {
+        element2.value = "";
+        changed = true;
+      }
+    });
+    updateTaskFilterSummary();
+    if (changed && options.render !== false) {
+      renderTasks6();
+    }
+  }
+  function updateTaskFilterSummary() {
+    const activeCount = activeTaskFilterCount();
+    if (els34.taskFilterActiveCount) {
+      els34.taskFilterActiveCount.hidden = activeCount === 0;
+      els34.taskFilterActiveCount.textContent = activeCount ? String(activeCount) : "";
+    }
+    els34.taskFilterButton?.classList.toggle("has-active-filters", activeCount > 0);
+    if (els34.taskFilterClearButton) {
+      els34.taskFilterClearButton.disabled = activeCount === 0;
+    }
+  }
+  function handleTaskFilterDocumentClick(event) {
+    const target = event.target;
+    const root = els34.taskFilterButton?.closest(".sidebar-search") || els34.taskFilterPopover;
+    if (!target || root?.contains(target)) return;
+    setTaskFilterPopoverOpen(false);
+  }
+  function handleTaskFilterKeydown(event) {
+    if (event.key !== "Escape" || els34.taskFilterPopover?.hidden) return;
+    event.preventDefault();
+    setTaskFilterPopoverOpen(false);
+    els34.taskFilterButton?.focus?.();
+  }
   function bindTaskListControlEvents() {
     if (taskListControlEventsBound) return;
     taskListControlEventsBound = true;
@@ -37144,9 +37331,17 @@ ${galleryText}`;
     els34.batchDeleteButton?.addEventListener("click", openBatchDeleteConfirm2);
     els34.batchCancelButton?.addEventListener("click", () => toggleBatchMode2(false));
     els34.taskSearch.addEventListener("input", handleTaskSearchInput);
-    [els34.taskRatioFilter, els34.taskOrientationFilter, els34.taskPromptFidelityFilter, els34.taskResolutionFilter].filter(Boolean).forEach((element2) => {
-      element2.addEventListener("change", renderTasks6);
+    els34.taskFilterButton?.addEventListener("click", toggleTaskFilterPopover);
+    els34.taskFilterClearButton?.addEventListener("click", () => clearTaskFilters());
+    document.addEventListener("click", handleTaskFilterDocumentClick);
+    document.addEventListener("keydown", handleTaskFilterKeydown);
+    taskFilterControls().forEach((element2) => {
+      element2.addEventListener("change", () => {
+        updateTaskFilterSummary();
+        renderTasks6();
+      });
     });
+    updateTaskFilterSummary();
     bindTaskListEvents();
   }
   function handleTaskSearchInput() {
@@ -37194,6 +37389,16 @@ ${galleryText}`;
       }
       return;
     }
+    const activeGroupToggle = event.target.closest("[data-active-task-group-toggle]");
+    if (activeGroupToggle) {
+      event.stopPropagation();
+      const previousLayout = captureTaskHistoryLayout3();
+      state25.activeTaskGroupCollapsed = !state25.activeTaskGroupCollapsed;
+      state25.tasksRenderKey = null;
+      renderTasks6();
+      animateTaskHistoryLayout3(previousLayout);
+      return;
+    }
     const archiveButton = event.target.closest("[data-archive-task-id]");
     if (archiveButton) {
       event.stopPropagation();
@@ -37239,6 +37444,9 @@ ${galleryText}`;
     if (taskListControlsInitialized) return;
     taskListControlsInitialized = true;
     Object.assign(getLegacyBridge().methods, {
+      updateTaskFilterSummary,
+      setTaskFilterPopoverOpen,
+      clearTaskFilters,
       bindTaskListControlEvents,
       bindTaskListEvents,
       handleTaskListClick,
@@ -37318,13 +37526,21 @@ ${galleryText}`;
     }
     if (payload2?.type === "queue") {
       applyQueueState(payload2.queue);
+      await applyRealtimeTaskPayloads(payload2.tasks || []);
       applyQueueTasks(payload2.queue);
       return;
     }
     if (payload2?.type === "task") {
-      const previousTask = state32.tasks.find((item) => String(item.task_id) === String(payload2.task?.task_id));
-      bridge39.methods.notifyTaskUpdate?.(previousTask, payload2.task);
-      bridge39.methods.applyTaskUpdate(payload2.task);
+      await applyRealtimeTaskPayloads(payload2.task ? [payload2.task] : []);
+    }
+  }
+  async function applyRealtimeTaskPayloads(tasks) {
+    const bridge39 = getLegacyBridge();
+    const state32 = bridge39.state;
+    for (const task of tasks) {
+      const previousTask = state32.tasks.find((item) => String(item.task_id) === String(task?.task_id));
+      bridge39.methods.notifyTaskUpdate?.(previousTask, task);
+      await bridge39.methods.applyTaskUpdate(task);
     }
   }
   async function refreshQueue() {
@@ -37837,8 +38053,15 @@ ${galleryText}`;
     queueDragOverPlacement = "after";
   }
   function handleTaskListQueueDragStart(event) {
-    const handle = eventTargetElement2(event)?.closest("[data-task-queue-drag-handle-id]");
-    if (!(handle instanceof HTMLElement)) return;
+    const target = eventTargetElement2(event);
+    const handle = target?.closest("[data-task-queue-drag-handle-id]");
+    if (!(handle instanceof HTMLElement)) {
+      if (target?.closest(".task-thumb")) {
+        event.preventDefault();
+        event.stopPropagation();
+      }
+      return;
+    }
     const card = handle.closest("[data-queue-task-id]");
     if (!(card instanceof HTMLElement)) return;
     stopQueueDragEvent(event);
@@ -38883,6 +39106,8 @@ ${galleryText}`;
         states.push(taskOutputRecordHasDisplayableImage(record) ? "completed" : "waiting");
       } else if (record?.status === "failed") {
         states.push("failed");
+      } else if (record?.status === "running" && (status === "failed" || status === "partial_failed")) {
+        states.push("failed");
       } else if (record?.status === "running") {
         states.push("running");
       } else if (record?.status === "queued" || record?.status === "waiting") {
@@ -38981,11 +39206,11 @@ ${galleryText}`;
     return positiveInt(match?.[1]);
   }
   function compressTaskImageBlockStates2(states) {
-    if (states.length <= 12) return states;
+    if (states.length <= 4) return states;
     const compressed = [];
-    for (let index = 0; index < 12; index += 1) {
-      const start = Math.floor(index * states.length / 12);
-      const end = Math.max(start + 1, Math.floor((index + 1) * states.length / 12));
+    for (let index = 0; index < 4; index += 1) {
+      const start = Math.floor(index * states.length / 4);
+      const end = Math.max(start + 1, Math.floor((index + 1) * states.length / 4));
       compressed.push(compressedTaskImageState(states.slice(start, end)));
     }
     return compressed;
@@ -39011,7 +39236,7 @@ ${galleryText}`;
     const parsed = Number.parseInt(value ?? "", 10);
     return !Number.isNaN(parsed) && parsed >= 0 ? parsed : null;
   }
-  function taskFailureMessage2(task) {
+  function taskFailureMessage(task) {
     if (!task || task.status !== "failed" && task.status !== "partial_failed") return "";
     return String(task.error || task.last_error || "").trim();
   }
@@ -39074,6 +39299,19 @@ ${galleryText}`;
     }
     return "";
   }
+  function taskCardRetryStateText2(task) {
+    if (!taskRetryStateText3(task)) return "";
+    if (task.status === "queued") return formatTranslation("taskStatus.waitingRetryShort");
+    if (task.status === "running") return formatTranslation("taskStatus.retryingShort");
+    if (["failed", "partial_failed"].includes(task.status)) {
+      if (canRetryFailedTask2(task)) return formatTranslation("taskStatus.manualRetryShort");
+      if (taskHasNonRetryableError(task) && !taskPartialFailureCanRetryGenericInvalidRequest(task)) {
+        return formatTranslation("taskStatus.nonRetryableShort");
+      }
+      return formatTranslation("taskStatus.stoppedShort");
+    }
+    return "";
+  }
   function taskHasNonRetryableError(task) {
     const message = String(task?.error || task?.last_error || "").toLowerCase();
     if (!message) return false;
@@ -39092,17 +39330,26 @@ ${galleryText}`;
     const message = String(task?.error || task?.last_error || "").toLowerCase();
     return message.includes("http 400") && message.includes("invalid_request_error") && !message.includes("invalid_value") && !message.includes("expected a base64-encoded data url") && !message.includes("unsupported mime type") && !message.includes("reference asset");
   }
-  function taskRuntimeText3(task) {
+  function taskDurationSeconds(task) {
     if (!task || !["completed", "failed", "partial_failed"].includes(task.status)) return "";
     const startedAt = timestampMs3(task.started_at || task.created_at);
     const endedAt = timestampMs3(task.completed_at || task.updated_at);
     if (startedAt === null || endedAt === null || endedAt < startedAt) return "";
-    const seconds = Math.floor((endedAt - startedAt) / 1e3);
-    const completion = taskCompletionTimestampText(task);
+    return Math.floor((endedAt - startedAt) / 1e3);
+  }
+  function taskDurationText2(task) {
+    const seconds = taskDurationSeconds(task);
+    if (seconds === "") return "";
+    return formatTranslation("taskStatus.runtime", { duration: formatDuration2(seconds) });
+  }
+  function taskRuntimeText2(task) {
+    const seconds = taskDurationSeconds(task);
+    if (seconds === "") return "";
+    const completion = taskCompletionTimestampText2(task);
     const duration = formatDuration2(seconds);
     return completion ? formatTranslation("taskStatus.runtimeCompleted", { duration, time: completion.shortText }) : formatTranslation("taskStatus.runtime", { duration });
   }
-  function taskCompletionTimestampText(task) {
+  function taskCompletionTimestampText2(task) {
     const completedAt = taskCompletionTimestampMs(task);
     if (completedAt === null) return null;
     return { shortText: formatLocalTimestamp(completedAt, false) };
@@ -39241,15 +39488,17 @@ ${galleryText}`;
       compressedTaskImageState,
       taskImageStatusCounts: taskImageStatusCounts2,
       positiveInt,
-      taskFailureMessage: taskFailureMessage2,
+      taskFailureMessage,
       canRetryFailedTask: canRetryFailedTask2,
       canAcceptTaskSuccesses: canAcceptTaskSuccesses2,
       taskRetryReasonText,
       taskRetryStateText: taskRetryStateText3,
+      taskCardRetryStateText: taskCardRetryStateText2,
       taskHasNonRetryableError,
       taskPartialFailureCanRetryGenericInvalidRequest,
-      taskRuntimeText: taskRuntimeText3,
-      taskCompletionTimestampText,
+      taskDurationText: taskDurationText2,
+      taskRuntimeText: taskRuntimeText2,
+      taskCompletionTimestampText: taskCompletionTimestampText2,
       taskCompletionTimestampTitle: taskCompletionTimestampTitle2,
       timestampMs: timestampMs3,
       elapsedSecondsSince: elapsedSecondsSince2,
@@ -39323,17 +39572,17 @@ ${galleryText}`;
   function renderTasks7(...args) {
     return legacyMethod38("renderTasks", ...args);
   }
-  function taskApiProviderId2(...args) {
+  function taskApiProviderId3(...args) {
     return legacyMethod38("taskApiProviderId", ...args);
   }
-  function taskApiProviderLabel2(...args) {
+  function taskApiProviderLabel3(...args) {
     return legacyMethod38("taskApiProviderLabel", ...args);
   }
   var taskOutputUrls3 = (...args) => legacyMethod38("taskOutputUrls", ...args);
   var taskSelectedOutputIndexes2 = (...args) => legacyMethod38("taskSelectedOutputIndexes", ...args);
   var taskOutputSelected2 = (...args) => legacyMethod38("taskOutputSelected", ...args);
   var positiveInt2 = (...args) => legacyMethod38("positiveInt", ...args);
-  var taskFailureMessage3 = (...args) => legacyMethod38("taskFailureMessage", ...args);
+  var taskFailureMessage2 = (...args) => legacyMethod38("taskFailureMessage", ...args);
   var canRetryFailedTask3 = (...args) => legacyMethod38("canRetryFailedTask", ...args);
   var canAcceptTaskSuccesses3 = (...args) => legacyMethod38("canAcceptTaskSuccesses", ...args);
   var taskRetryStateText4 = (...args) => legacyMethod38("taskRetryStateText", ...args);
@@ -39345,8 +39594,8 @@ ${galleryText}`;
   function taskRequestPreviewPayload(task) {
     if (!task?.request) return null;
     const request = { ...task.request };
-    const providerId = taskApiProviderId2(task);
-    const providerLabel = taskApiProviderLabel2(task);
+    const providerId = taskApiProviderId3(task);
+    const providerLabel = taskApiProviderLabel3(task);
     if (providerId && !request.webui_api_provider_id) {
       request.webui_api_provider_id = providerId;
     }
@@ -39407,7 +39656,7 @@ ${galleryText}`;
       clearPreviewGridLayout();
       els37.previewGrid.innerHTML = `
       <div class="empty-preview error-preview">
-        <p>${escapeHtml19(taskFailureMessage3(selected) || translate("preview.taskFailed"))}</p>
+        <p>${escapeHtml19(taskFailureMessage2(selected) || translate("preview.taskFailed"))}</p>
         ${retryFailureSummaryButton(selected)}
       </div>
     `;
@@ -39432,7 +39681,7 @@ ${galleryText}`;
     const selectedIndexes = taskSelectedOutputIndexes2(task).join(",");
     const size = task.params?.size || task.output_size || currentSize2();
     if (status === "failed" || status === "partial_failed") {
-      return ["failed", taskId, status, outputUrls, selectedIndexes, taskFailureMessage3(task), taskRetryStateText4(task), canRetryFailedTask3(task), canAcceptTaskSuccesses3(task)].join("|");
+      return ["failed", taskId, status, outputUrls, selectedIndexes, taskFailureMessage2(task), taskRetryStateText4(task), canRetryFailedTask3(task), canAcceptTaskSuccesses3(task)].join("|");
     }
     if (status === "submitting" || status === "queued") {
       return ["waiting", taskId, status, outputUrls, selectedIndexes, taskGeneratedCount2(task, 0), taskTotalCount2(task), size, task.last_error || task.error || "", taskRetryStateText4(task)].join("|");
@@ -40034,7 +40283,7 @@ ${galleryText}`;
     const failed = Number.parseInt(task?.failed_count ?? "", 10);
     const failedCount = Number.isNaN(failed) ? Math.max(0, taskTotalCount2(task) - generated) : failed;
     const total = taskTotalCount2(task);
-    const message = escapeHtml19(taskFailureMessage3(task) || translate("preview.partialFailed"));
+    const message = escapeHtml19(taskFailureMessage2(task) || translate("preview.partialFailed"));
     const retryState = taskRetryStateText4(task);
     const retryStateHtml = retryState ? `<p data-preview-retry-state>${escapeHtml19(retryState)}</p>` : "";
     return `
@@ -40367,7 +40616,7 @@ ${galleryText}`;
   function renderPreview7(task) {
     legacyMethod40("renderPreview", task);
   }
-  function taskFailureMessage4(task) {
+  function taskFailureMessage3(task) {
     return legacyMethod40("taskFailureMessage", task);
   }
   function taskRequestPreviewPayload2(task) {
@@ -40420,7 +40669,7 @@ ${galleryText}`;
     updateTaskSelectionVisuals3(taskId);
     renderPreview7(task);
     if (task.status === "failed") {
-      setStatus21(taskFailureMessage4(task) || translate("taskActions.failedFallback"), "error");
+      setStatus21(taskFailureMessage3(task) || translate("taskActions.failedFallback"), "error");
     } else if (task.status !== "running") {
       setStatus21(formatTranslation("status.loadedTask", { taskId }), "ok");
     }
@@ -40984,6 +41233,8 @@ ${galleryText}`;
   var shellUiInitialized = false;
   var shellUiEventsBound = false;
   var previewPanelHeightFrameId = null;
+  var sidebarResizeFrameId = null;
+  var sidebarResizePendingWidth = null;
   function legacyMethod42(name, ...args) {
     const method = getLegacyBridge().methods[name];
     if (typeof method !== "function") {
@@ -41133,17 +41384,27 @@ ${galleryText}`;
     if (Number.isNaN(width)) return SIDEBAR_MIN_WIDTH;
     return Math.min(sidebarMaxWidth(), Math.max(SIDEBAR_MIN_WIDTH, width));
   }
+  function sidebarWidthFromCss() {
+    const widthOwner = els41.sidebar || document.documentElement;
+    const inlineWidth = Number.parseInt(widthOwner.style.getPropertyValue("--sidebar-width") || "", 10);
+    if (!Number.isNaN(inlineWidth)) return clampSidebarWidth(inlineWidth);
+    const tokenWidth = Number.parseInt(getComputedStyle(widthOwner).getPropertyValue("--sidebar-width") || "", 10);
+    return Number.isNaN(tokenWidth) ? null : clampSidebarWidth(tokenWidth);
+  }
+  function currentSidebarWidth() {
+    return sidebarWidthFromCss() ?? SIDEBAR_DEFAULT_WIDTH;
+  }
   function syncSidebarResizeHandleAria(width = null) {
     const handle = els41.sidebarResizeHandle;
     if (!handle) return;
-    const currentWidth = width !== null ? width : Math.round(els41.sidebar?.getBoundingClientRect().width || SIDEBAR_DEFAULT_WIDTH);
+    const currentWidth = width !== null ? width : currentSidebarWidth();
     handle.setAttribute("aria-valuemin", String(SIDEBAR_MIN_WIDTH));
     handle.setAttribute("aria-valuemax", String(SIDEBAR_MAX_WIDTH));
     handle.setAttribute("aria-valuenow", String(currentWidth));
   }
-  function applySidebarWidth(width, { persist = true } = {}) {
+  function applySidebarWidth(width, { persist = true, syncPreviewHeight = true } = {}) {
     const nextWidth = clampSidebarWidth(width);
-    document.documentElement.style.setProperty("--sidebar-width", `${nextWidth}px`);
+    (els41.sidebar || document.documentElement).style.setProperty("--sidebar-width", `${nextWidth}px`);
     syncSidebarResizeHandleAria(nextWidth);
     if (persist) {
       try {
@@ -41151,22 +41412,46 @@ ${galleryText}`;
       } catch {
       }
     }
-    schedulePreviewPanelHeightSync();
+    if (syncPreviewHeight) {
+      schedulePreviewPanelHeightSync();
+    }
   }
   function resetSidebarWidth() {
     applySidebarWidth(SIDEBAR_DEFAULT_WIDTH);
   }
+  function scheduleSidebarResizeWidth(width) {
+    sidebarResizePendingWidth = clampSidebarWidth(width);
+    if (sidebarResizeFrameId !== null) return;
+    sidebarResizeFrameId = window.requestAnimationFrame(() => {
+      sidebarResizeFrameId = null;
+      const nextWidth = sidebarResizePendingWidth;
+      sidebarResizePendingWidth = null;
+      if (nextWidth === null) return;
+      applySidebarWidth(nextWidth, { persist: false, syncPreviewHeight: false });
+    });
+  }
+  function flushSidebarResizeWidth(width) {
+    if (sidebarResizeFrameId !== null) {
+      window.cancelAnimationFrame(sidebarResizeFrameId);
+      sidebarResizeFrameId = null;
+    }
+    sidebarResizePendingWidth = null;
+    applySidebarWidth(width, { persist: true, syncPreviewHeight: true });
+  }
   function startSidebarResize(event) {
     if (!els41.sidebar || event.button !== 0) return;
     event.preventDefault();
-    const currentWidth = els41.sidebar.getBoundingClientRect().width || SIDEBAR_MIN_WIDTH;
+    const currentWidth = currentSidebarWidth();
     state31.sidebarResize = {
       pointerId: event.pointerId,
       startX: event.clientX,
-      startWidth: currentWidth
+      startWidth: currentWidth,
+      lastWidth: currentWidth
     };
     els41.sidebar.classList.add("resizing");
-    document.body.classList.add("sidebar-resizing");
+    if (els41.sidebarResizeShield) {
+      els41.sidebarResizeShield.hidden = false;
+    }
     els41.sidebarResizeHandle?.setPointerCapture?.(event.pointerId);
     window.addEventListener("pointermove", updateSidebarResize);
     window.addEventListener("pointerup", finishSidebarResize);
@@ -41175,25 +41460,29 @@ ${galleryText}`;
   function updateSidebarResize(event) {
     const resize = state31.sidebarResize;
     if (!resize || event.pointerId !== resize.pointerId) return;
-    applySidebarWidth(resize.startWidth + event.clientX - resize.startX, { persist: false });
+    event.preventDefault();
+    resize.lastWidth = resize.startWidth + event.clientX - resize.startX;
+    scheduleSidebarResizeWidth(resize.lastWidth);
   }
   function finishSidebarResize(event) {
     const resize = state31.sidebarResize;
     if (!resize || event.pointerId !== resize.pointerId) return;
-    const currentWidth = els41.sidebar?.getBoundingClientRect().width || resize.startWidth;
-    applySidebarWidth(currentWidth, { persist: true });
+    const nextWidth = resize.lastWidth ?? resize.startWidth;
     state31.sidebarResize = null;
     els41.sidebar?.classList.remove("resizing");
-    document.body.classList.remove("sidebar-resizing");
+    if (els41.sidebarResizeShield) {
+      els41.sidebarResizeShield.hidden = true;
+    }
     els41.sidebarResizeHandle?.releasePointerCapture?.(event.pointerId);
     window.removeEventListener("pointermove", updateSidebarResize);
     window.removeEventListener("pointerup", finishSidebarResize);
     window.removeEventListener("pointercancel", finishSidebarResize);
+    flushSidebarResizeWidth(nextWidth);
   }
   function handleSidebarResizeKeydown(event) {
     if (!els41.sidebar) return;
     const step = event.shiftKey ? 32 : 16;
-    const currentWidth = els41.sidebar.getBoundingClientRect().width || SIDEBAR_MIN_WIDTH;
+    const currentWidth = currentSidebarWidth();
     if (event.key === "ArrowLeft") {
       event.preventDefault();
       applySidebarWidth(currentWidth - step);
@@ -41219,6 +41508,9 @@ ${galleryText}`;
     schedulePreviewPanelHeightSync();
   }
   function schedulePreviewPanelHeightSync() {
+    if (state31.sidebarResize) {
+      return;
+    }
     if (previewPanelHeightFrameId !== null) {
       window.cancelAnimationFrame(previewPanelHeightFrameId);
     }
@@ -41228,6 +41520,7 @@ ${galleryText}`;
     });
   }
   function syncPreviewPanelHeight() {
+    if (state31.sidebarResize) return;
     if (!els41.controlsCol || !els41.previewCol || !els41.previewPanel) return;
     if (window.matchMedia("(max-width: 1024px)").matches) {
       els41.previewCol.style.removeProperty("--controls-col-height");

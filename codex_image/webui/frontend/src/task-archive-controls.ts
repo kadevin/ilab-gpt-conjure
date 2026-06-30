@@ -154,13 +154,15 @@ function renderArchiveModal() {
     const title = escapeHtml(task.prompt || task.mode || "Untitled");
     const status = escapeHtml(formatTaskStatus(task));
     const size = escapeHtml(task.output_size || task.params?.size || "");
+    const provider = escapeHtml(legacyMethod("taskCardProviderLabel", task) || "");
+    const meta = [status, size, provider].filter(Boolean).join(" · ");
     const taskId = escapeHtml(task.task_id);
     return `
       <article class="archive-card" data-archive-select-task-id="${taskId}">
         ${image}
         <div class="archive-info">
           <strong>${title}</strong>
-          <span>${status} · ${size}</span>
+          <span>${meta}</span>
         </div>
         <div class="archive-card-actions">
           <button class="ghost-button text-sm" type="button" data-restore-archive-task-id="${taskId}">${translate("archive.restore")}</button>

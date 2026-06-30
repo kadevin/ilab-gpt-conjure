@@ -180,8 +180,15 @@ function resetQueueDragTracking(): void {
 }
 
 function handleTaskListQueueDragStart(event: DragEvent): void {
-  const handle = eventTargetElement(event)?.closest("[data-task-queue-drag-handle-id]");
-  if (!(handle instanceof HTMLElement)) return;
+  const target = eventTargetElement(event);
+  const handle = target?.closest("[data-task-queue-drag-handle-id]");
+  if (!(handle instanceof HTMLElement)) {
+    if (target?.closest(".task-thumb")) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+    return;
+  }
   const card = handle.closest("[data-queue-task-id]");
   if (!(card instanceof HTMLElement)) return;
   stopQueueDragEvent(event);

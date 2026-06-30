@@ -306,6 +306,8 @@ function taskImageBlockStates(task: any) {
       states.push(taskOutputRecordHasDisplayableImage(record) ? "completed" : "waiting");
     } else if (record?.status === "failed") {
       states.push("failed");
+    } else if (record?.status === "running" && (status === "failed" || status === "partial_failed")) {
+      states.push("failed");
     } else if (record?.status === "running") {
       states.push("running");
     } else if (record?.status === "queued" || record?.status === "waiting") {
@@ -413,11 +415,11 @@ function taskOutputIndexFromUrl(url: any) {
 }
 
 function compressTaskImageBlockStates(states: any) {
-  if (states.length <= 12) return states;
+  if (states.length <= 4) return states;
   const compressed = [];
-  for (let index = 0; index < 12; index += 1) {
-    const start = Math.floor((index * states.length) / 12);
-    const end = Math.max(start + 1, Math.floor(((index + 1) * states.length) / 12));
+  for (let index = 0; index < 4; index += 1) {
+    const start = Math.floor((index * states.length) / 4);
+    const end = Math.max(start + 1, Math.floor(((index + 1) * states.length) / 4));
     compressed.push(compressedTaskImageState(states.slice(start, end)));
   }
   return compressed;
@@ -516,6 +518,20 @@ function taskRetryStateText(task: any) {
   return "";
 }
 
+function taskCardRetryStateText(task: any) {
+  if (!taskRetryStateText(task)) return "";
+  if (task.status === "queued") return formatTranslation("taskStatus.waitingRetryShort");
+  if (task.status === "running") return formatTranslation("taskStatus.retryingShort");
+  if (["failed", "partial_failed"].includes(task.status)) {
+    if (canRetryFailedTask(task)) return formatTranslation("taskStatus.manualRetryShort");
+    if (taskHasNonRetryableError(task) && !taskPartialFailureCanRetryGenericInvalidRequest(task)) {
+      return formatTranslation("taskStatus.nonRetryableShort");
+    }
+    return formatTranslation("taskStatus.stoppedShort");
+  }
+  return "";
+}
+
 function taskHasNonRetryableError(task: any) {
   const message = String(task?.error || task?.last_error || "").toLowerCase();
   if (!message) return false;
@@ -543,12 +559,23 @@ function taskPartialFailureCanRetryGenericInvalidRequest(task: any) {
   );
 }
 
-function taskRuntimeText(task: any) {
+function taskDurationSeconds(task: any) {
   if (!task || !["completed", "failed", "partial_failed"].includes(task.status)) return "";
   const startedAt = timestampMs(task.started_at || task.created_at);
   const endedAt = timestampMs(task.completed_at || task.updated_at);
   if (startedAt === null || endedAt === null || endedAt < startedAt) return "";
-  const seconds = Math.floor((endedAt - startedAt) / 1000);
+  return Math.floor((endedAt - startedAt) / 1000);
+}
+
+function taskDurationText(task: any) {
+  const seconds = taskDurationSeconds(task);
+  if (seconds === "") return "";
+  return formatTranslation("taskStatus.runtime", { duration: formatDuration(seconds) });
+}
+
+function taskRuntimeText(task: any) {
+  const seconds = taskDurationSeconds(task);
+  if (seconds === "") return "";
   const completion = taskCompletionTimestampText(task);
   const duration = formatDuration(seconds);
   return completion
@@ -725,8 +752,10 @@ export function initTaskDerivedFeature() {
     canAcceptTaskSuccesses,
     taskRetryReasonText,
     taskRetryStateText,
+    taskCardRetryStateText,
     taskHasNonRetryableError,
     taskPartialFailureCanRetryGenericInvalidRequest,
+    taskDurationText,
     taskRuntimeText,
     taskCompletionTimestampText,
     taskCompletionTimestampTitle,

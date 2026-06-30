@@ -351,8 +351,7 @@ export async function refreshApiSettings(): Promise<void> {
     if (!response.ok) throw new Error(data.detail || translate("apiSettings.loadFailed"));
     state.apiSettings = mergeApiProviderKeys(data.settings || {});
     populateApiSettingsForm();
-    updateModeSpecificSettings();
-    updateRequestPreview();
+    renderAuthSourceAfterProviderChange();
   } catch (error: any) {
     setApiSettingsFeedback(error.message || translate("apiSettings.loadFailed"), "error");
   }

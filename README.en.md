@@ -145,7 +145,7 @@ http://127.0.0.1:8787/
 ## Portable packages
 
 Download the current portable packages from [Downloads / Releases](RELEASES.md),
-or open [GitHub Release v0.5.3](https://github.com/kadevin/ilab-gpt-conjure/releases/tag/v0.5.3)
+or open [GitHub Release v0.5.4](https://github.com/kadevin/ilab-gpt-conjure/releases/tag/v0.5.4)
 directly.
 
 These packages are intended for users who want a ComfyUI-style unzip-and-run

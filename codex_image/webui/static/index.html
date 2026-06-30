@@ -63,7 +63,7 @@
         document.documentElement.dataset.locale = locale;
       })();
     </script>
-    <link rel="stylesheet" href="/static/styles.css?v=runtime-368" />
+    <link rel="stylesheet" href="/static/styles.css?v=runtime-400" />
   </head>
   <body>
     <div class="layout-container">
@@ -96,46 +96,84 @@
           </div>
           <div class="sidebar-search">
             <input id="taskSearch" type="search" placeholder="搜索对话..." data-i18n-attr="placeholder:sidebar.searchPlaceholder" />
-          </div>
-          <div class="sidebar-filter-panel" aria-label="任务筛选" data-i18n-attr="aria-label:sidebar.filters">
-            <div class="sidebar-filter-grid">
-              <select id="taskRatioFilter" class="task-filter-select" aria-label="按比例筛选">
-                <option value="" data-i18n="sidebar.allRatios">全部比例</option>
-                <option value="1:1">1:1</option>
-                <option value="4:5">4:5</option>
-                <option value="5:4">5:4</option>
-                <option value="3:4">3:4</option>
-                <option value="4:3">4:3</option>
-                <option value="2:3">2:3</option>
-                <option value="3:2">3:2</option>
-                <option value="9:16">9:16</option>
-                <option value="16:9">16:9</option>
-                <option value="9:21">9:21</option>
-                <option value="21:9">21:9</option>
-              </select>
-              <select id="taskOrientationFilter" class="task-filter-select" aria-label="按方向筛选">
-                <option value="" data-i18n="sidebar.allOrientations">全部方向</option>
-                <option value="square" data-i18n="output.square">方形</option>
-                <option value="portrait" data-i18n="output.portrait">竖图</option>
-                <option value="landscape" data-i18n="output.landscape">横图</option>
-              </select>
-              <select id="taskPromptFidelityFilter" class="task-filter-select" aria-label="按提示词模式筛选">
-                <option value="" data-i18n="sidebar.allModes">全部模式</option>
-                <option value="original" data-i18n="output.modeOriginal">原始模式</option>
-                <option value="strict" data-i18n="output.modeStrict">保真模式</option>
-                <option value="off" data-i18n="output.modeCreative">创意模式</option>
-              </select>
-              <select id="taskResolutionFilter" class="task-filter-select" aria-label="按分辨率筛选">
-                <option value="" data-i18n="sidebar.allResolutions">全部分辨率</option>
-                <option value="standard">1K</option>
-                <option value="2k">2K</option>
-                <option value="4k">4K</option>
-              </select>
+            <button
+              id="taskFilterButton"
+              class="task-filter-button"
+              type="button"
+              aria-label="任务筛选"
+              aria-expanded="false"
+              aria-controls="taskFilterPopover"
+              title="任务筛选"
+              data-i18n-attr="aria-label:sidebar.filters;title:sidebar.filters"
+            >
+              <svg class="task-filter-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">
+                <path d="M4 6h16M7 12h10M10 18h4" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+              </svg>
+              <span id="taskFilterActiveCount" class="task-filter-active-count" hidden></span>
+            </button>
+            <div
+              id="taskFilterPopover"
+              class="task-filter-popover"
+              role="dialog"
+              aria-label="任务筛选"
+              data-i18n-attr="aria-label:sidebar.filters"
+              hidden
+            >
+              <div class="task-filter-popover-header">
+                <span data-i18n="sidebar.filters">任务筛选</span>
+                <button id="taskFilterClearButton" class="ghost-button text-sm task-filter-clear-button" type="button" aria-label="清空" data-i18n="action.clear" data-i18n-attr="aria-label:action.clear">清空</button>
+              </div>
+              <div class="sidebar-filter-grid">
+                <select id="taskRatioFilter" class="task-filter-select" aria-label="按比例筛选">
+                  <option value="" data-i18n="sidebar.allRatios">全部比例</option>
+                  <option value="1:1">1:1</option>
+                  <option value="4:5">4:5</option>
+                  <option value="5:4">5:4</option>
+                  <option value="3:4">3:4</option>
+                  <option value="4:3">4:3</option>
+                  <option value="2:3">2:3</option>
+                  <option value="3:2">3:2</option>
+                  <option value="9:16">9:16</option>
+                  <option value="16:9">16:9</option>
+                  <option value="9:21">9:21</option>
+                  <option value="21:9">21:9</option>
+                </select>
+                <select id="taskOrientationFilter" class="task-filter-select" aria-label="按方向筛选">
+                  <option value="" data-i18n="sidebar.allOrientations">全部方向</option>
+                  <option value="square" data-i18n="output.square">方形</option>
+                  <option value="portrait" data-i18n="output.portrait">竖图</option>
+                  <option value="landscape" data-i18n="output.landscape">横图</option>
+                </select>
+                <select id="taskPromptFidelityFilter" class="task-filter-select" aria-label="按提示词模式筛选">
+                  <option value="" data-i18n="sidebar.allModes">全部模式</option>
+                  <option value="original" data-i18n="output.modeOriginal">原始模式</option>
+                  <option value="strict" data-i18n="output.modeStrict">保真模式</option>
+                  <option value="off" data-i18n="output.modeCreative">创意模式</option>
+                </select>
+                <select id="taskResolutionFilter" class="task-filter-select" aria-label="按分辨率筛选">
+                  <option value="" data-i18n="sidebar.allResolutions">全部分辨率</option>
+                  <option value="standard">1K</option>
+                  <option value="2k">2K</option>
+                  <option value="4k">4K</option>
+                </select>
+              </div>
             </div>
           </div>
         </div>
 
         <div class="task-history-shell">
+          <div class="task-history-tools">
+            <div id="statusText" class="status-text" aria-live="polite" data-i18n="status.waiting">等待任务</div>
+            <button id="batchManageButton" class="ghost-button icon-button task-history-batch-button" type="button" data-i18n="footer.batch">批量管理</button>
+          </div>
+          <div id="batchToolbar" class="batch-toolbar hidden" aria-live="polite">
+            <div id="batchSelectedCount" class="batch-selected-count" data-i18n="batch.selected">已选择 0 个</div>
+            <div class="batch-toolbar-actions">
+              <button id="batchArchiveButton" class="ghost-button text-sm" type="button" disabled data-i18n="action.archive">归档</button>
+              <button id="batchDeleteButton" class="ghost-button text-sm danger-button" type="button" disabled data-i18n="action.delete">删除</button>
+              <button id="batchCancelButton" class="ghost-button text-sm" type="button" data-i18n="action.cancel">取消</button>
+            </div>
+          </div>
           <div
             id="taskActiveList"
             class="task-active-list hidden"
@@ -161,21 +199,8 @@
         </div>
 
         <div class="sidebar-footer">
-          <div id="batchToolbar" class="batch-toolbar hidden" aria-live="polite">
-            <div id="batchSelectedCount" class="batch-selected-count" data-i18n="batch.selected">已选择 0 个</div>
-            <div class="batch-toolbar-actions">
-              <button id="batchArchiveButton" class="ghost-button text-sm" type="button" disabled data-i18n="action.archive">归档</button>
-              <button id="batchDeleteButton" class="ghost-button text-sm danger-button" type="button" disabled data-i18n="action.delete">删除</button>
-              <button id="batchCancelButton" class="ghost-button text-sm" type="button" data-i18n="action.cancel">取消</button>
-            </div>
-          </div>
-          <div id="statusText" class="status-text" aria-live="polite" data-i18n="status.waiting">等待任务</div>
-          <div class="footer-actions">
-            <button id="batchManageButton" class="ghost-button icon-button" type="button" data-i18n="footer.batch">批量管理</button>
-          </div>
-          <div class="api-status-bar">
+          <div class="sidebar-api-status-holder" aria-hidden="true">
             <div id="apiStatus" class="status-dot"></div>
-            <span data-i18n="footer.apiStatus">API 状态: 正常</span>
           </div>
           <button
             id="versionInfo"
@@ -199,6 +224,7 @@
           tabindex="0"
         ></div>
       </aside>
+      <div id="sidebarResizeShield" class="sidebar-resize-shield" hidden></div>
 
       <!-- Main Area -->
       <div class="main-wrapper">
@@ -1192,7 +1218,7 @@
     </div>
 
     <div id="taskNotificationToastRegion" class="task-notification-toast-region" aria-live="polite"></div>
-  <script src="/static/app.js?v=runtime-368"></script>
+  <script src="/static/app.js?v=runtime-400"></script>
     <script>
       (() => {
         document.querySelectorAll(".radio-group").forEach((group) => {

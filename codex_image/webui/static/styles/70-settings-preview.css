@@ -939,7 +939,7 @@ input[type=range].slider:disabled::-moz-range-thumb {
   border-radius: 6px;
   overflow: hidden;
   background: var(--surface-soft);
-  border: 1px solid var(--line);
+  border: 1px solid transparent;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -950,6 +950,7 @@ input[type=range].slider:disabled::-moz-range-thumb {
 
 .preview-card.is-loading-next {
   background: var(--surface-soft);
+  border-color: transparent;
 }
 
 .preview-card.is-selected {
@@ -959,6 +960,8 @@ input[type=range].slider:disabled::-moz-range-thumb {
 
 .preview-grid:not(.multi-output) .preview-card {
   height: 100%;
+  border-color: transparent;
+  background: transparent;
 }
 
 .preview-grid:not(.multi-output) .preview-card img {
@@ -1641,7 +1644,7 @@ body.lightbox-open {
   gap: 12px;
   padding: 24px;
   color: var(--danger);
-  border-color: color-mix(in srgb, var(--danger) 35%, var(--line));
+  border: 1px solid transparent;
   background: var(--danger-soft);
   line-height: 1.55;
   text-align: left;

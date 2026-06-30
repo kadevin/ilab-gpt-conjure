@@ -68,6 +68,10 @@ class WebUIStaticHistoryTests(unittest.TestCase):
         self.assertRegex(styles, r"\.history-task-list\.history-view-grid \.history-task-select\s*\{[^}]*border:\s*0")
         self.assertRegex(styles, r"\.history-task-list\.history-view-grid \.history-task-select\s*\{[^}]*background:\s*transparent")
         self.assertRegex(styles, r"\.history-task-list\.history-view-grid \.history-task-select\s*\{[^}]*box-shadow:\s*none")
+        self.assertRegex(styles, r":root\[data-theme=\"dark\"\] \.history-task-select\s*\{[^}]*opacity:\s*0\.72")
+        self.assertRegex(styles, r":root\[data-theme=\"dark\"\] \.history-task-list\.history-view-grid \.history-task-select\s*\{[^}]*background:\s*transparent")
+        self.assertRegex(styles, r":root\[data-theme=\"dark\"\] \.history-task-list\.history-view-grid \.history-task-select\s*\{[^}]*box-shadow:\s*none")
+        self.assertRegex(styles, r":root\[data-theme=\"dark\"\] \.history-task-select input\s*\{[^}]*opacity:\s*1")
         self.assertRegex(styles, r"\.history-task-list\.history-view-grid \.history-task-card\s*\{[^}]*flex-basis:\s*var\(--history-task-card-width")
         self.assertRegex(styles, r"\.history-task-list\.history-view-grid \.history-task-card\s*\{[^}]*width:\s*var\(--history-task-card-width")
         self.assertNotRegex(styles, r"\.history-task-list\.history-view-grid\s*\{[^}]*justify-content:\s*space-between")
@@ -137,6 +141,7 @@ class WebUIStaticHistoryTests(unittest.TestCase):
         for marker in [
             "selectedTaskIds: new Set<string>()",
             'selectionAnchorTaskId: ""',
+            "pendingDeleteTaskIds: [] as string[]",
             "exhausted: false",
             "newerExhausted: true",
             "syncStateFromUrl()",
@@ -179,6 +184,10 @@ class WebUIStaticHistoryTests(unittest.TestCase):
             "history-view-grid",
             "history-view-list",
             "renderBulkToolbar()",
+            "clearHistoryDeleteConfirmation",
+            "renderSelectionDetail",
+            "syncHistorySelectionDetail",
+            'dataset.historyDetailMode = "selection"',
             "history-bulk-selecting",
             'els.page?.classList.toggle("history-bulk-selecting", count > 0)',
             "archiveSelectedTasks",
@@ -205,6 +214,7 @@ class WebUIStaticHistoryTests(unittest.TestCase):
             "toggleHistoryTaskSelection",
             "selectHistoryTaskRange",
             "handleHistoryTaskShortcutSelection",
+            "shouldDeleteCurrentHistorySelection",
             "event.shiftKey",
             "event.metaKey",
             "event.ctrlKey",
@@ -335,6 +345,14 @@ class WebUIStaticHistoryTests(unittest.TestCase):
 
         self.assertIn("backend", source)
         self.assertIn("provider", source)
+        self.assertIn("function historyTaskSourceLabel", source)
+        self.assertIn("function historyBackendDisplayLabel", source)
+        self.assertIn("const source = historyTaskSourceLabel(task)", source)
+        self.assertIn("task.provider", source)
+        self.assertLess(source.index("task.provider"), source.index("task.backend"))
+        self.assertIn('if (value === "codex_images") return "Codex";', source)
+        self.assertIn('if (value === "openai_images") return "OpenAI";', source)
+        self.assertIn('<span>${escapeHtml(historyTaskSourceLabel(task))}</span>', source)
         self.assertIn("orientation", source)
         self.assertIn("prompt_mode", source)
         self.assertIn("quality", source)
@@ -392,6 +410,24 @@ class WebUIStaticHistoryTests(unittest.TestCase):
             with self.subTest(function_name=function_name):
                 body = _typescript_function_body(source, function_name)
                 self.assertNotIn("loadTasks({ reset: true })", body)
+
+        delete_body = _typescript_function_body(source, "deleteSelectedTasks")
+        self.assertIn("historyState.pendingDeleteTaskIds", delete_body)
+        self.assertIn("Promise.allSettled", delete_body)
+        self.assertIn("historyState.selectedTaskIds = new Set(failedIds)", delete_body)
+        self.assertNotIn("for (const taskId of ids)", delete_body)
+
+        context_body = _typescript_function_body(source, "handleHistoryContextMenuAction")
+        self.assertIn("shouldDeleteCurrentHistorySelection(taskId)", context_body)
+        self.assertIn("deleteHistoryContextSelectedTasks([...historyState.selectedTaskIds])", context_body)
+
+        guard_body = _typescript_function_body(source, "shouldDeleteCurrentHistorySelection")
+        self.assertIn("historyState.selectedTaskIds.size > 1", guard_body)
+        self.assertIn("historyState.selectedTaskIds.has(taskId)", guard_body)
+
+        selection_visuals_body = _typescript_function_body(source, "updateTaskSelectionVisuals")
+        self.assertIn("const batchSelecting = historyState.selectedTaskIds.size > 0", selection_visuals_body)
+        self.assertIn("!batchSelecting && taskId && cardTaskId === taskId", selection_visuals_body)
 
     def test_history_page_polish_i18n_and_detail_actions_contracts(self) -> None:
         html = Path("codex_image/webui/static/history.html").read_text(encoding="utf-8")
@@ -473,6 +509,10 @@ class WebUIStaticHistoryTests(unittest.TestCase):
             'historyContextButton("archive-selected", translate("action.archive"))',
             'historyContextButton("restore-selected", translate("archive.restore"))',
             'historyContextButton("delete-selected", confirmingDelete ? translate("history.confirmDeleteSelected")',
+            'data-history-bulk-archive',
+            'data-history-bulk-restore',
+            'data-history-bulk-delete',
+            'data-history-bulk-clear',
             'deleteSingleHistoryTask(taskId, { confirmInMenu: true })',
             'downloadHistoryTasks(taskIds)',
         ]:

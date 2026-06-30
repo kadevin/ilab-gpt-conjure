@@ -333,6 +333,23 @@ class WebUIStorageTests(unittest.TestCase):
             storage.delete_task(task.task_id)
 
         self.assertFalse(legacy_output.exists())
+
+    def test_delete_task_removes_task_prefixed_output_artifacts(self) -> None:
+        from codex_image.webui.storage import TaskStorage
+
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            storage = TaskStorage(input_root=root / "inputs", output_root=root / "outputs", source_data_root=root / "outputs" / "source-data")
+            task = storage.create_task("animation_edit")
+            artifact = root / "outputs" / task.task_id[:4] / f"{task.task_id}-artifact-original-sprite.png"
+            artifact.parent.mkdir(parents=True, exist_ok=True)
+            artifact.write_bytes(b"artifact")
+            metadata_path = storage.write_metadata(task.task_id, {"task_id": task.task_id, "output_files": []})
+
+            storage.delete_task(task.task_id)
+
+        self.assertFalse(artifact.exists())
+        self.assertFalse(metadata_path.exists())
         self.assertFalse(metadata_path.exists())
 
     def test_queue_storage_persists_waiting_order_and_running_channels(self) -> None:

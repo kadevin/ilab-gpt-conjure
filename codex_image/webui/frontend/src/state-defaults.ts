@@ -104,6 +104,7 @@ export function createDefaultState(): WebUIState {
   realtimeSource: null,
   realtimeSnapshotNeedsArchiveMigration: false,
   queueDragTaskId: null,
+  activeTaskGroupCollapsed: false,
   expandedTaskGroupKey: null,
   expandedTaskGroupAnimationPending: false,
   taskNotifications: [],

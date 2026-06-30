@@ -39,13 +39,18 @@
   background: color-mix(in srgb, var(--primary) 34%, transparent);
 }
 
-body.sidebar-resizing {
+.sidebar-resize-shield {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: transparent;
   cursor: col-resize;
   user-select: none;
+  touch-action: none;
 }
 
 .sidebar-header {
-  padding: 20px 16px 12px;
+  padding: 16px 16px 10px;
 }
 
 .brand {
@@ -54,7 +59,7 @@ body.sidebar-resizing {
   justify-content: space-between;
   gap: 14px;
   min-height: 44px;
-  margin-bottom: 18px;
+  margin-bottom: 14px;
   padding: 0 3px;
 }
 
@@ -111,12 +116,14 @@ body.sidebar-resizing {
 
 .sidebar-search {
   margin-top: 0;
+  position: relative;
+  z-index: 32;
 }
 
 .sidebar-search input {
   width: 100%;
   height: 36px;
-  padding: 0 12px 0 32px;
+  padding: 0 50px 0 32px;
   border: 1px solid var(--line);
   border-radius: 18px;
   background: var(--surface-soft) url('data:image/svg+xml;utf8,<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="%23889d95" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>') no-repeat 12px center;
@@ -130,10 +137,106 @@ body.sidebar-resizing {
   background-color: var(--surface);
 }
 
-.sidebar-filter-panel {
+.task-filter-button {
+  position: absolute;
+  top: 50%;
+  right: 5px;
+  width: 30px;
+  height: 28px;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--text-secondary);
+  display: inline-grid;
+  place-items: center;
+  transform: translateY(-50%);
+  cursor: pointer;
+  transition:
+    background var(--motion-fast),
+    border-color var(--motion-fast),
+    color var(--motion-fast),
+    box-shadow var(--motion-fast);
+}
+
+.task-filter-button:hover,
+.task-filter-button:focus-visible,
+.task-filter-button.is-open,
+.task-filter-button.has-active-filters {
+  border-color: color-mix(in srgb, var(--primary) 46%, var(--line));
+  background: var(--primary-light);
+  color: var(--primary-strong);
+  outline: none;
+}
+
+.task-filter-button:focus-visible {
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 20%, transparent);
+}
+
+.task-filter-icon {
+  display: block;
+  pointer-events: none;
+}
+
+.task-filter-active-count {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  border: 2px solid var(--surface-soft);
+  border-radius: 999px;
   display: grid;
+  place-items: center;
+  background: var(--primary);
+  color: var(--primary-foreground);
+  font-size: 9.5px;
+  font-weight: 760;
+  line-height: 1;
+}
+
+.task-filter-active-count[hidden] {
+  display: none;
+}
+
+.task-filter-popover {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  z-index: 34;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface);
+  box-shadow: var(--shadow-popover);
+}
+
+.task-filter-popover[hidden] {
+  display: none;
+}
+
+.task-filter-popover-header {
+  min-height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   gap: 8px;
-  margin-top: 8px;
+  margin-bottom: 8px;
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.task-filter-clear-button {
+  height: 26px;
+  padding: 0 9px;
+}
+
+.task-filter-clear-button:disabled {
+  opacity: 0.46;
+  cursor: not-allowed;
 }
 
 .sidebar-filter-grid {
@@ -145,13 +248,13 @@ body.sidebar-resizing {
 .task-filter-select {
   min-width: 0;
   width: 100%;
-  height: 30px;
-  padding: 0 8px;
+  height: 28px;
+  padding: 0 7px;
   border: 1px solid var(--line);
   border-radius: 8px;
-  background: var(--surface-soft);
+  background: var(--surface);
   color: var(--text-secondary);
-  font-size: 12px;
+  font-size: 11.5px;
   outline: none;
 }
 
@@ -167,6 +270,22 @@ body.sidebar-resizing {
   flex-direction: column;
   padding: 0 12px;
   gap: 6px;
+}
+
+.task-history-tools {
+  flex: 0 0 auto;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  min-height: 34px;
+  padding-right: var(--task-history-scrollbar-offset, 0px);
+}
+
+.task-history-batch-button {
+  min-height: 30px;
+  padding: 0 10px;
+  white-space: nowrap;
 }
 
 .sidebar-content {

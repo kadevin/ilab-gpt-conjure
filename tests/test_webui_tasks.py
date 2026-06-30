@@ -1014,6 +1014,89 @@ class WebUITaskTests(unittest.TestCase):
         self.assertEqual(accepted["original_total_count"], 2)
         self.assertNotIn("error", accepted)
         self.assertNotIn("last_error", accepted)
+    def test_orphaned_running_task_list_marks_running_slots_failed(self) -> None:
+        from codex_image.webui.app import create_app
+
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            app = create_app(
+                output_root=root,
+                client_factory=lambda: FakeImageClient(),
+                auth_checker=lambda: True,
+                auto_start_queue=False,
+            )
+            task_id = "20260520103800-orphaned-running-slot"
+            app.state.storage.write_metadata(
+                task_id,
+                {
+                    "task_id": task_id,
+                    "created_at": "2026-05-20T02:38:00+00:00",
+                    "updated_at": "2026-05-20T02:39:00+00:00",
+                    "mode": "generate",
+                    "status": "running",
+                    "prompt": "orphaned running output slot",
+                    "prompt_for_model": "orphaned running output slot",
+                    "params": {"size": "1024x1024", "quality": "low", "n": 1},
+                    "generated_count": 0,
+                    "failed_count": 0,
+                    "total_count": 1,
+                    "outputs": [{"index": 1, "status": "running", "started_at": "2026-05-20T02:38:01+00:00"}],
+                },
+            )
+
+            client = TestClient(app)
+            response = client.get("/api/tasks")
+
+        self.assertEqual(response.status_code, 200, response.text)
+        task = response.json()["tasks"][0]
+        self.assertEqual(task["status"], "failed")
+        self.assertTrue(task["orphaned_running"])
+        self.assertEqual(task["generated_count"], 0)
+        self.assertEqual(task["failed_count"], 1)
+        self.assertEqual(task["outputs"][0]["status"], "failed")
+        self.assertIn("任务已中断", task["outputs"][0]["error"])
+    def test_failed_task_list_marks_stale_running_slots_failed(self) -> None:
+        from codex_image.webui.app import create_app
+
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            app = create_app(
+                output_root=root,
+                client_factory=lambda: FakeImageClient(),
+                auth_checker=lambda: True,
+                auto_start_queue=False,
+            )
+            task_id = "20260520103900-failed-stale-running-slot"
+            app.state.storage.write_metadata(
+                task_id,
+                {
+                    "task_id": task_id,
+                    "created_at": "2026-05-20T02:39:00+00:00",
+                    "updated_at": "2026-05-20T02:40:00+00:00",
+                    "mode": "generate",
+                    "status": "failed",
+                    "prompt": "failed with stale running output slot",
+                    "prompt_for_model": "failed with stale running output slot",
+                    "params": {"size": "1024x1024", "quality": "low", "n": 1},
+                    "generated_count": 0,
+                    "failed_count": 0,
+                    "total_count": 1,
+                    "outputs": [{"index": 1, "status": "running", "started_at": "2026-05-20T02:39:01+00:00"}],
+                    "error": "Service restarted before this task completed.",
+                    "last_error": "Service restarted before this task completed.",
+                },
+            )
+
+            client = TestClient(app)
+            response = client.get("/api/tasks")
+
+        self.assertEqual(response.status_code, 200, response.text)
+        task = response.json()["tasks"][0]
+        self.assertEqual(task["status"], "failed")
+        self.assertEqual(task["generated_count"], 0)
+        self.assertEqual(task["failed_count"], 1)
+        self.assertEqual(task["outputs"][0]["status"], "failed")
+        self.assertEqual(task["outputs"][0]["error"], "Service restarted before this task completed.")
     def test_retry_failed_outputs_requeues_only_failed_slots(self) -> None:
         from codex_image.webui.app import create_app
 

@@ -182,15 +182,22 @@ function taskHistoryLayoutElements() {
     shell.querySelectorAll<HTMLElement>(".task-history-anchor-row, .task-group-header-split"),
   ).map((node) => {
     const key = String(
-      node.dataset.taskGroupAnchorKey
+      node.dataset.activeTaskGroupToggle
+        ? "active"
+        : node.dataset.taskGroupAnchorKey
         || node.dataset.taskGroupToggleKey
         || "",
     );
     if (!key) return null;
     const rect = node.getBoundingClientRect();
+    const activeExpanded = node.dataset.activeTaskGroupToggle
+      ? node.getAttribute("aria-expanded") === "true"
+      : null;
     return {
       key,
-      kind: node.classList.contains("task-history-anchor-row") ? "anchor" : "expanded",
+      kind: activeExpanded === null
+        ? (node.classList.contains("task-history-anchor-row") ? "anchor" : "expanded")
+        : (activeExpanded ? "expanded" : "anchor"),
       node,
       rect: {
         top: rect.top,
