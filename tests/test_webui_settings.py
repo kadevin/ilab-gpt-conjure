@@ -2300,7 +2300,10 @@ class WebUISettingsTests(unittest.TestCase):
             root = Path(tmp)
             auth_settings_path = root / "auth-settings.json"
             AuthSettings(auth_settings_path).write_source("codex")
-            with patch("codex_image.webui.queue_runtime.CodexImageClient", ConcurrentCodexResponsesClient):
+            with (
+                patch("codex_image.webui.queue_runtime.CodexImageClient", ConcurrentCodexResponsesClient),
+                patch("codex_image.webui.queue_runtime.load_auth_state", return_value=object()),
+            ):
                 app = create_app(
                     output_root=root / "tasks",
                     auth_settings_path=auth_settings_path,
