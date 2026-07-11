@@ -36,10 +36,19 @@ jobs:
           python-version: ${{ matrix.python-version }}
           cache: pip
 
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+          cache: npm
+
       - name: Install WebUI dependencies
         run: |
           python -m pip install --upgrade pip
           python -m pip install -r requirements-webui.txt
+
+      - name: Install frontend test dependencies
+        run: npm ci
 
       - name: Run Python tests
         run: python -m unittest discover -s tests -v
