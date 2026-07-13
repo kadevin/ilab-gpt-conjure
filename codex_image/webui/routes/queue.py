@@ -53,7 +53,11 @@ def register_queue_routes(app: FastAPI, ctx: WebUIContext) -> None:
                 previous_queue_key = queue_key
                 previous_task_ids = current_task_ids
 
-        return StreamingResponse(stream_events(), media_type="text/event-stream")
+        return StreamingResponse(
+            stream_events(),
+            media_type="text/event-stream",
+            headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
+        )
 
     @app.patch("/api/queue/reorder")
     def reorder_queue(payload: dict[str, Any] = Body(...)) -> dict[str, Any]:

@@ -1088,25 +1088,24 @@ class WebUIStaticTaskTests(WebUIStaticTestCase):
         self.assertIn("function applyQueueTasks", queue_source)
         self.assertIn("applyTaskUpdate", queue_source)
         self.assertIn("updateTaskInState", queue_source)
+        self.assertIn("state.tasksRequestSeq += 1", queue_source)
         self.assertIn("function renderActiveTaskGroupForQueueChange", queue_source)
         self.assertNotIn('bridge.state.expandedTaskGroupKey || "") !== "active"', queue_source)
         self.assertIn("bridge.methods.renderTasks?.();", queue_source)
         self.assertIn("bridge.methods.renderTasks?.()", queue_source)
         boot_source = Path("codex_image/webui/frontend/src/boot.ts").read_text(encoding="utf-8")
-        self.assertIn("const realtimeStarted = window.startRealtimeUpdates?.({ migrateLegacyArchives: true });", boot_source)
-        self.assertIn("if (!realtimeStarted) {", boot_source)
+        self.assertIn("window.startRealtimeUpdates?.({ migrateLegacyArchives: true });", boot_source)
         self.assertIn('call(methods, "refreshTasks", { migrateLegacyArchives: true })', boot_source)
-        realtime_fallback_block = re.search(
-            r"if \(!realtimeStarted\) \{(?P<body>[\s\S]*?)\n  \}",
+        startup_refresh_block = re.search(
+            r"window\.startRealtimeUpdates\?\.\(\{ migrateLegacyArchives: true \}\);(?P<body>[\s\S]*?)\n  call\(methods, \"startUiClock\"\)",
             boot_source,
         )
-        self.assertIsNotNone(realtime_fallback_block)
-        self.assertIn('window.refreshQueue?.()', realtime_fallback_block.group("body"))
-        self.assertIn('call(methods, "refreshTasks", { migrateLegacyArchives: true })', realtime_fallback_block.group("body"))
-        self.assertNotRegex(
-            boot_source.replace(realtime_fallback_block.group(0), ""),
-            r"refreshTasks\(\s*\{ migrateLegacyArchives: true \}\)",
-        )
+        self.assertIsNotNone(startup_refresh_block)
+        self.assertIn('window.refreshQueue?.()', startup_refresh_block.group("body"))
+        self.assertIn('call(methods, "refreshTasks", { migrateLegacyArchives: true })', startup_refresh_block.group("body"))
+        self.assertNotIn("if (!realtimeStarted)", startup_refresh_block.group("body"))
+        self.assertNotIn(".finally(", startup_refresh_block.group("body"))
+        self.assertIn("state.realtimeSnapshotNeedsArchiveMigration = false", startup_refresh_block.group("body"))
         self.assertIn("void getLegacyBridge().methods.refreshTasks({ migrateLegacyArchives: shouldMigrateArchives });", queue_source)
         self.assertIn("applyQueueState(payload.queue)", queue_source)
         self.assertIn("function activeTasksNeedQueueReconcile(", queue_source)
@@ -1128,6 +1127,8 @@ class WebUIStaticTaskTests(WebUIStaticTestCase):
         self.assertIn("queue_event(queue, finished_events)", queue_routes)
         self.assertIn("request.is_disconnected()", queue_routes)
         self.assertIn("EVENT_STREAM_CHECK_INTERVAL_SECONDS", queue_routes)
+        self.assertIn('"Cache-Control": "no-cache"', queue_routes)
+        self.assertIn('"X-Accel-Buffering": "no"', queue_routes)
         self.assertIn('"type": "queue"', events_source)
         self.assertIn('"type": "task"', events_source)
         self.assertIn("requestSeq !== state.queueRequestSeq", queue_source)
@@ -1172,6 +1173,145 @@ class WebUIStaticTaskTests(WebUIStaticTestCase):
         self.assertIn('/api/queue/${encodeURIComponent(taskId)}/promote', queue_source)
         self.assertIn('/api/queue/${encodeURIComponent(taskId)}', queue_source)
         self.assertIn('/api/queue/reorder', queue_source)
+
+    def test_startup_task_refresh_and_realtime_snapshot_races(self) -> None:
+        node = shutil.which("node")
+        if node is None:
+            self.skipTest("node is required for frontend behavior checks")
+        if not Path("node_modules/typescript").exists():
+            self.skipTest("typescript is required for frontend behavior checks")
+        harness = r"""
+          const fs = require("fs");
+          const ts = require("typescript");
+
+          const state = {
+            tasks: [],
+            tasksRequestSeq: 0,
+            realtimeSnapshotNeedsArchiveMigration: false,
+            pendingTaskId: null,
+            queue: { waiting: [], running: [], summary: {} },
+          };
+          let migrationCount = 0;
+          const methods = {
+            cleanupSessionSelections() {},
+            migrateLegacyArchivedTasks() { migrationCount += 1; },
+            renderArchiveButton() {},
+            renderArchiveModal() {},
+            renderPreview() {},
+            renderTasks() {},
+            revokeTaskUploadPreviewUrls() {},
+            updateDocumentTitle() {},
+          };
+          const bridge = { state, els: {}, methods };
+          const windowMock = {
+            EventSource: function EventSource() {},
+            refreshQueue() { return Promise.resolve(); },
+            startRealtimeUpdates({ migrateLegacyArchives }) {
+              state.realtimeSnapshotNeedsArchiveMigration = migrateLegacyArchives;
+              return true;
+            },
+          };
+          global.window = windowMock;
+          global.document = { addEventListener() {} };
+          global.Element = function Element() {};
+          const errors = [];
+          console.error = (error) => errors.push(String(error && error.message || error));
+
+          function loadTypeScriptModule(path, mocks) {
+            const source = fs.readFileSync(path, "utf8");
+            const output = ts.transpileModule(source, {
+              compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020 },
+            }).outputText;
+            const module = { exports: {} };
+            const localRequire = (name) => {
+              if (Object.prototype.hasOwnProperty.call(mocks, name)) return mocks[name];
+              throw new Error(`Unexpected import ${name} from ${path}`);
+            };
+            new Function("require", "module", "exports", output)(localRequire, module, module.exports);
+            return module.exports;
+          }
+
+          const stateModule = { getLegacyBridge: () => bridge, getState: () => state };
+          const tasksModule = loadTypeScriptModule("codex_image/webui/frontend/src/tasks.ts", {
+            "./state": stateModule,
+          });
+          tasksModule.initTaskFeature();
+          const queueModule = loadTypeScriptModule("codex_image/webui/frontend/src/queue.ts", {
+            "./dom": { getEls: () => ({}) },
+            "./i18n": {
+              formatTranslation: (key) => key,
+              LOCALE_CHANGE_EVENT: "localechange",
+              translate: (key) => key,
+            },
+            "./state": stateModule,
+          });
+          const bootModule = loadTypeScriptModule("codex_image/webui/frontend/src/boot.ts", {
+            "./event-bindings": { bindWebUIEvents() {} },
+          });
+
+          function deferred() {
+            let resolve;
+            let reject;
+            const promise = new Promise((resolvePromise, rejectPromise) => {
+              resolve = resolvePromise;
+              reject = rejectPromise;
+            });
+            return { promise, resolve, reject };
+          }
+          const flush = () => new Promise((resolve) => setImmediate(resolve));
+          const response = (tasks) => ({ json: async () => ({ tasks }) });
+          function reset() {
+            state.tasks = [];
+            state.tasksRequestSeq = 0;
+            state.realtimeSnapshotNeedsArchiveMigration = false;
+            migrationCount = 0;
+            errors.length = 0;
+          }
+
+          (async () => {
+            reset();
+            const httpFirst = deferred();
+            global.fetch = () => httpFirst.promise;
+            bootModule.bootWebUI(state, {}, methods);
+            if (!state.realtimeSnapshotNeedsArchiveMigration) throw new Error("startup migration flag should remain set while HTTP is pending");
+            httpFirst.resolve(response([{ task_id: "http-first" }]));
+            await flush();
+            if (state.tasks[0]?.task_id !== "http-first") throw new Error("HTTP startup tasks were not applied");
+            if (state.realtimeSnapshotNeedsArchiveMigration) throw new Error("successful HTTP refresh should clear the migration flag");
+            await queueModule.handleRealtimePayload({ type: "snapshot", tasks: [{ task_id: "sse-later" }], queue: {} });
+            if (state.tasks[0]?.task_id !== "sse-later") throw new Error("later SSE snapshot should replace startup HTTP data");
+            if (migrationCount !== 1) throw new Error(`expected one HTTP migration, got ${migrationCount}`);
+
+            reset();
+            const sseFirst = deferred();
+            global.fetch = () => sseFirst.promise;
+            bootModule.bootWebUI(state, {}, methods);
+            await queueModule.handleRealtimePayload({ type: "snapshot", tasks: [{ task_id: "sse-first" }], queue: {} });
+            sseFirst.resolve(response([{ task_id: "stale-http" }]));
+            await flush();
+            if (state.tasks[0]?.task_id !== "sse-first") throw new Error("stale HTTP response overwrote the SSE snapshot");
+            if (migrationCount !== 1) throw new Error(`expected one SSE migration, got ${migrationCount}`);
+
+            reset();
+            const failedHttp = deferred();
+            global.fetch = () => failedHttp.promise;
+            bootModule.bootWebUI(state, {}, methods);
+            failedHttp.reject(new Error("offline"));
+            await flush();
+            if (!state.realtimeSnapshotNeedsArchiveMigration) throw new Error("failed HTTP refresh cleared the migration flag");
+            await queueModule.handleRealtimePayload({ type: "snapshot", tasks: [{ task_id: "sse-recovery" }], queue: {} });
+            if (state.tasks[0]?.task_id !== "sse-recovery") throw new Error("SSE did not recover after HTTP failure");
+            if (migrationCount !== 1) throw new Error(`expected SSE recovery migration, got ${migrationCount}`);
+            if (errors.length !== 1 || errors[0] !== "offline") throw new Error(`unexpected startup errors: ${errors.join(", ")}`);
+          })().catch((error) => {
+            process.stderr.write(String(error && error.stack || error));
+            process.exitCode = 1;
+          });
+        """
+        result = subprocess.run([node, "-e", harness], cwd=Path.cwd(), check=False, text=True, capture_output=True)
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+
     def test_queue_feature_has_typescript_source_contract(self) -> None:
         queue_source = self._queue_source()
         main_source = Path("codex_image/webui/frontend/src/main.ts").read_text(encoding="utf-8")

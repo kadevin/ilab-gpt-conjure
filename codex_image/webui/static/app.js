@@ -153,11 +153,16 @@
     call2(methods, "refreshHealth");
     call2(methods, "refreshGallery");
     call2(methods, "refreshRecentAssets");
-    const realtimeStarted = window.startRealtimeUpdates?.({ migrateLegacyArchives: true });
-    if (!realtimeStarted) {
-      void window.refreshQueue?.();
-      void call2(methods, "refreshTasks", { migrateLegacyArchives: true });
-    }
+    window.startRealtimeUpdates?.({ migrateLegacyArchives: true });
+    void window.refreshQueue?.();
+    void Promise.resolve(call2(methods, "refreshTasks", { migrateLegacyArchives: true })).then(
+      () => {
+        state32.realtimeSnapshotNeedsArchiveMigration = false;
+      },
+      (error) => {
+        console.error(error);
+      }
+    );
     call2(methods, "startUiClock");
     call2(methods, "updateRequestPreview");
     call2(methods, "openSystemSettingsFromUrl");
@@ -40062,6 +40067,7 @@ ${galleryText}`;
   async function handleRealtimePayload(payload2) {
     const bridge39 = getLegacyBridge();
     const state32 = bridge39.state;
+    state32.tasksRequestSeq += 1;
     if (payload2?.type === "snapshot") {
       applyQueueState(payload2.queue);
       await bridge39.methods.applyTasksSnapshot(payload2.tasks || [], {
