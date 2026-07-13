@@ -32,9 +32,10 @@ Portable startup launchers only start the local WebUI server and open the local
 browser URL by default. They contact GitHub only when the user chooses the
 update check action from the tray/menu-bar menu.
 
-Standard app packages do not silently self-replace app files. Their update check
-verifies the signed manifest and opens the matching DMG or standard App ZIP
-download when a new version is available.
+Standard app packages do not silently self-replace app files. Updater-enabled
+macOS standard apps can perform a user-confirmed one-click replacement after
+verifying the signed manifest and DMG SHA256; older macOS apps and Windows
+standard ZIP packages open the matching download for manual replacement.
 
 Portable update scripts can be started by the launcher after user confirmation,
 or run manually from the extracted package. They fetch the published signed

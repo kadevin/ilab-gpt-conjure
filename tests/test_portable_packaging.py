@@ -334,12 +334,16 @@ class PortablePackagingTests(unittest.TestCase):
         self.assertIn('DMG_NAME="iLab-GPT-CONJURE-macos-${PACKAGE_ARCH}-${SAFE_VERSION}.dmg"', build_text)
         self.assertIn("Contents/Resources/app", build_text)
         self.assertIn("Contents/Resources/python", build_text)
+        self.assertIn("Contents/Helpers", build_text)
         self.assertIn("standard_webui_app.py", build_text)
         self.assertIn("create-dmg-root", build_text)
         self.assertIn("/Applications", build_text)
         self.assertIn("hdiutil create", build_text)
         self.assertIn("UDZO", build_text)
         self.assertIn("codesign --force --sign -", build_text)
+        self.assertIn("ilab-conjure-standard-updater", build_text)
+        self.assertIn('--bin ilab-conjure-standard-updater', build_text)
+        self.assertIn('APP_BUNDLE_HELPERS', build_text)
         self.assertLess(
             build_text.index('remove_local_artifacts "$APP_BUNDLE_ROOT"'),
             build_text.index('codesign --force --deep --sign - "$APP_BUNDLE_ROOT"'),
@@ -360,6 +364,9 @@ class PortablePackagingTests(unittest.TestCase):
         self.assertIn("~/Library/Application Support/iLab GPT CONJURE", readme_text)
         self.assertIn("portable data", readme_text)
         self.assertIn("not notarized", readme_text)
+        self.assertIn("Install Update", readme_text)
+        self.assertIn("automatically replaces", readme_text)
+        self.assertIn("first version", readme_text)
 
     def test_windows_standard_app_zip_packaging_is_not_an_installer(self) -> None:
         build_script = Path("packaging/windows/build-app.ps1")

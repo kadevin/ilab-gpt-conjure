@@ -14,6 +14,8 @@ use std::{
     time::{Duration, Instant, SystemTime, UNIX_EPOCH},
 };
 
+pub mod standard_update;
+
 pub const APP_NAME: &str = "iLab GPT CONJURE";
 pub const DEFAULT_PORT: u16 = 8787;
 pub const WEBUI_URL: &str = "http://127.0.0.1:8787/";
@@ -328,6 +330,7 @@ pub struct UpdateLabels {
     pub check_failed: &'static str,
     pub install_update: &'static str,
     pub install_note: &'static str,
+    pub standard_install_note: &'static str,
     pub download_update: &'static str,
     pub download_note: &'static str,
     pub open_release: &'static str,
@@ -346,6 +349,7 @@ pub fn localized_update_labels(locale: AppLocale) -> UpdateLabels {
             check_failed: "无法检查更新",
             install_update: "安装更新",
             install_note: "点击“安装更新”会退出启动器，由更新器替换程序文件并保留 data/。",
+            standard_install_note: "点击“安装更新”会退出当前 App，自动覆盖安装新版并重新启动；任务、图片和设置保持不变。",
             download_update: "下载新版",
             download_note: "点击“下载新版”会打开标准安装包下载。下载完成后退出当前 App，再用新版包覆盖安装。",
             open_release: "打开发行页",
@@ -361,6 +365,7 @@ pub fn localized_update_labels(locale: AppLocale) -> UpdateLabels {
             check_failed: "無法檢查更新",
             install_update: "安裝更新",
             install_note: "點擊「安裝更新」會結束啟動器，由更新器替換程式檔案並保留 data/。",
+            standard_install_note: "點擊「安裝更新」會結束目前 App，自動覆蓋安裝新版並重新啟動；任務、圖片和設定保持不變。",
             download_update: "下載新版",
             download_note: "點擊「下載新版」會開啟標準安裝包下載。下載完成後結束目前 App，再用新版包覆蓋安裝。",
             open_release: "開啟發行頁",
@@ -378,6 +383,7 @@ pub fn localized_update_labels(locale: AppLocale) -> UpdateLabels {
             install_update: "Install Update",
             install_note:
                 "Install Update will quit the launcher, replace app files, and preserve data/.",
+            standard_install_note: "Install Update will quit this app, replace it with the verified update, and relaunch it. Tasks, images, and settings are preserved.",
             download_update: "Download Update",
             download_note:
                 "Download Update opens the standard app package. After it downloads, quit this app and install the new package over the old one.",
@@ -431,6 +437,7 @@ enum UpdatePackageKind {
 enum UpdateInstallAction {
     None,
     PortableUpdater,
+    StandardMacUpdater,
     DownloadPackage,
 }
 
@@ -440,6 +447,8 @@ struct UpdateCheck {
     latest_version: String,
     release_url: String,
     download_url: Option<String>,
+    download_sha256: Option<String>,
+    package: Option<String>,
     availability: UpdateAvailability,
 }
 
@@ -868,13 +877,14 @@ fn update_check_from_manifest(
         UpdatePackageKind::Standard => &manifest.standard_platforms,
         UpdatePackageKind::Source => &manifest.platforms,
     };
+    let platform = platform_map.get(current_update_platform_key());
     UpdateCheck {
         current_version: current_version.to_string(),
         latest_version,
         release_url: manifest.release_url.clone(),
-        download_url: platform_map
-            .get(current_update_platform_key())
-            .map(|platform| platform.url.clone()),
+        download_url: platform.map(|entry| entry.url.clone()),
+        download_sha256: platform.map(|entry| entry.sha256.clone()),
+        package: platform.map(|entry| entry.package.clone()),
         availability,
     }
 }
@@ -1035,7 +1045,9 @@ fn update_install_button_label(
     install_action: UpdateInstallAction,
 ) -> &'static str {
     match install_action {
-        UpdateInstallAction::PortableUpdater => labels.install_update,
+        UpdateInstallAction::PortableUpdater | UpdateInstallAction::StandardMacUpdater => {
+            labels.install_update
+        }
         UpdateInstallAction::DownloadPackage => labels.download_update,
         UpdateInstallAction::None => labels.install_update,
     }
@@ -1044,6 +1056,7 @@ fn update_install_button_label(
 fn update_install_note(labels: &UpdateLabels, install_action: UpdateInstallAction) -> &'static str {
     match install_action {
         UpdateInstallAction::PortableUpdater => labels.install_note,
+        UpdateInstallAction::StandardMacUpdater => labels.standard_install_note,
         UpdateInstallAction::DownloadPackage => labels.download_note,
         UpdateInstallAction::None => labels.install_note,
     }
@@ -1537,6 +1550,13 @@ fn update_install_action_for_config(
         return UpdateInstallAction::PortableUpdater;
     }
     if is_standard_app_dir(&config.app_dir) {
+        if cfg!(target_os = "macos")
+            && check.package.as_deref() == Some("standard-dmg")
+            && check.download_sha256.is_some()
+            && standard_update::standard_update_helper_path(&config.app_dir).is_some()
+        {
+            return UpdateInstallAction::StandardMacUpdater;
+        }
         return UpdateInstallAction::DownloadPackage;
     }
     UpdateInstallAction::None
@@ -1645,6 +1665,10 @@ impl WebUiService {
                     self.launch_portable_updater()?;
                     Ok(UpdateOutcome::LaunchedUpdater)
                 }
+                UpdateInstallAction::StandardMacUpdater => {
+                    self.launch_standard_updater(&check, locale)?;
+                    Ok(UpdateOutcome::LaunchedUpdater)
+                }
                 UpdateInstallAction::DownloadPackage => {
                     let url = check
                         .download_url
@@ -1692,6 +1716,29 @@ impl WebUiService {
             updater.display()
         ))?;
         spawn_portable_updater(&updater)
+    }
+
+    fn launch_standard_updater(&self, check: &UpdateCheck, locale: AppLocale) -> Result<()> {
+        let helper = standard_update::standard_update_helper_path(&self.config.app_dir)
+            .ok_or_else(|| anyhow!("standard updater helper is not available"))?;
+        let target_app = standard_update::standard_app_bundle_path(&self.config.app_dir)
+            .ok_or_else(|| anyhow!("standard App bundle path could not be resolved"))?;
+        let request = standard_update::StandardUpdateRequest {
+            url: check
+                .download_url
+                .clone()
+                .ok_or_else(|| anyhow!("standard update download URL is not available"))?,
+            expected_sha256: check
+                .download_sha256
+                .clone()
+                .ok_or_else(|| anyhow!("standard update SHA256 is not available"))?,
+            expected_version: check.latest_version.clone(),
+            target_app,
+            parent_pid: std::process::id(),
+            log_path: self.config.data_dir.join("standard-update.log"),
+            locale: locale.tag().to_string(),
+        };
+        standard_update::launch_standard_updater(&helper, &request)
     }
 
     pub fn log_line(&self, message: &str) -> Result<()> {
@@ -2853,9 +2900,15 @@ mod tests {
             Some("https://example.test/current.zip".to_string())
         );
         assert_eq!(
+            check.download_sha256,
+            Some("bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb".to_string())
+        );
+        assert_eq!(check.package, Some("portable-zip".to_string()));
+        assert_eq!(
             standard_check.download_url,
             Some("https://example.test/current.dmg".to_string())
         );
+        assert_eq!(standard_check.package, Some("standard-dmg".to_string()));
     }
 
     #[test]
@@ -2946,6 +2999,10 @@ mod tests {
             latest_version: "v0.6.0".to_string(),
             release_url: "https://example.test/release".to_string(),
             download_url: Some("https://example.test/current.zip".to_string()),
+            download_sha256: Some(
+                "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb".to_string(),
+            ),
+            package: Some("portable-zip".to_string()),
             availability: UpdateAvailability::UpdateAvailable,
         };
 
@@ -2956,6 +3013,10 @@ mod tests {
         assert!(update_check_has_install_action(
             &check,
             UpdateInstallAction::PortableUpdater
+        ));
+        assert!(update_check_has_install_action(
+            &check,
+            UpdateInstallAction::StandardMacUpdater
         ));
         assert!(update_check_has_install_action(
             &check,
@@ -3013,6 +3074,38 @@ mod tests {
 
         assert_eq!(config.uvicorn_app(), "standard_webui_app:app");
         assert_eq!(portable_updater_path(&config), None);
+
+        let check = UpdateCheck {
+            current_version: "v0.6.1".to_string(),
+            latest_version: "v0.6.2".to_string(),
+            release_url: "https://example.test/release".to_string(),
+            download_url: Some("https://example.test/update.dmg".to_string()),
+            download_sha256: Some("a".repeat(64)),
+            package: Some("standard-dmg".to_string()),
+            availability: UpdateAvailability::UpdateAvailable,
+        };
+        assert_eq!(
+            update_install_action_for_config(&config, &check),
+            UpdateInstallAction::DownloadPackage
+        );
+
+        let helper = root
+            .join("iLab GPT CONJURE.app")
+            .join("Contents")
+            .join("Helpers")
+            .join(standard_update::STANDARD_UPDATER_EXECUTABLE);
+        fs::create_dir_all(helper.parent().unwrap()).unwrap();
+        fs::write(&helper, "helper").unwrap();
+        #[cfg(target_os = "macos")]
+        assert_eq!(
+            update_install_action_for_config(&config, &check),
+            UpdateInstallAction::StandardMacUpdater
+        );
+        #[cfg(not(target_os = "macos"))]
+        assert_eq!(
+            update_install_action_for_config(&config, &check),
+            UpdateInstallAction::DownloadPackage
+        );
 
         let _ = fs::remove_dir_all(root);
     }

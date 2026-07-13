@@ -943,6 +943,7 @@ dependencies = [
  "ed25519-dalek",
  "open",
  "serde_json",
+ "sha2",
  "tray-icon",
  "winit",
  "winresource",

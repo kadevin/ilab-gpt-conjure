@@ -351,8 +351,8 @@ class ReferenceFileFrontendContractTests(unittest.TestCase):
         index = (ROOT / "codex_image/webui/static/index.html").read_text(encoding="utf-8")
         history = (ROOT / "codex_image/webui/static/history.html").read_text(encoding="utf-8")
         worker = (ROOT / "codex_image/webui/static/service-worker.js").read_text(encoding="utf-8")
-        self.assertIn("runtime-556", index)
-        self.assertIn("runtime-556", history)
+        self.assertIn("runtime-568", index)
+        self.assertIn("runtime-568", history)
         self.assertIn("history-69", history)
         self.assertIn('ilab-gpt-conjure-shell-v50', worker)
 

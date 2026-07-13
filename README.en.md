@@ -79,6 +79,11 @@ Download standard app packages and portable transition packages from
   launcher, Open WebUI / Settings / History Library actions, system-language
   menu labels, native About window, and confirmed legacy portable data copy on
   first launch.
+- Standard macOS apps that bundle the updater support user-confirmed one-click
+  replacement: the helper verifies the signed manifest and DMG SHA256, exits the
+  running app, replaces it with rollback protection, and relaunches while keeping
+  Application Support data outside the bundle. Older macOS apps need one manual
+  bootstrap install; Windows standard ZIP updates remain manual.
 - Portable transition packages keep local `data/` next to the app and support
   user-confirmed automatic replacement through the signed `latest.json`
   manifest, Ed25519 signature verification, SHA256 checks, `.backup/`, and
@@ -157,15 +162,15 @@ http://127.0.0.1:8787/
 ## App packages
 
 Download the current packages from [Downloads / Releases](RELEASES.md), or open
-[GitHub Release v0.6.1](https://github.com/kadevin/ilab-gpt-conjure/releases/tag/v0.6.1)
+[GitHub Release v0.6.2](https://github.com/kadevin/ilab-gpt-conjure/releases/tag/v0.6.2)
 directly.
 
 New users should choose the standard packages:
 
-1. macOS: download `iLab-GPT-CONJURE-macos-arm64-0.6.1.dmg`
-   for Apple Silicon or `iLab-GPT-CONJURE-macos-x64-0.6.1.dmg`
+1. macOS: download `iLab-GPT-CONJURE-macos-arm64-0.6.2.dmg`
+   for Apple Silicon or `iLab-GPT-CONJURE-macos-x64-0.6.2.dmg`
    for Intel, then drag `iLab GPT CONJURE.app` to Applications.
-2. Windows: download `iLab-GPT-CONJURE-windows-x64_0.6.1.zip`,
+2. Windows: download `iLab-GPT-CONJURE-windows-x64_0.6.2.zip`,
    extract it into a normal user directory, and run `iLab GPT CONJURE.exe`.
 
 Standard packages store user data in `~/Library/Application Support/iLab GPT
@@ -173,6 +178,13 @@ CONJURE` on macOS and `%APPDATA%\iLab GPT CONJURE` on Windows. On first launch,
 the app can detect adjacent legacy portable data and asks before copying it. The
 old `data/` folder is not moved or deleted, and existing standard data is never
 overwritten automatically.
+
+Standard macOS apps that include the updater can install later releases from the
+menu-bar Check for Updates dialog. After confirmation, an external helper
+downloads and SHA256-verifies the signed-manifest DMG, quits the current app,
+replaces it with rollback protection, and relaunches. This is not a silent
+background install. v0.6.1 and earlier standard apps must manually install the
+first updater-enabled DMG once. Windows standard ZIP updates remain manual.
 
 v0.5.4 and earlier portable users should manually download a full standard package or a full portable package for the first 0.5.5 upgrade. The old updater only guarantees WebUI/dependency updates and may not install the new rabbit launcher, standard `.app` / `.exe` entry, or migration assistant.
 

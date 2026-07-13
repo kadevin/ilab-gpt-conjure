@@ -261,12 +261,14 @@ class OutputSettingsLockFrontendContractTests(WebUIStaticTestCase):
         block = responsive[responsive.index(marker):responsive.index("@media (max-width: 640px)")]
         self.assertRegex(
             block,
-            r"\.controls-col\s+\.output-settings-summary-card\s*\{[^}]*min-height:\s*90px",
+            r"\.controls-col\s+\.output-settings-summary-card\s*\{[^}]*"
+            r"min-height:\s*clamp\(82px,[^}]*166px\)",
         )
         self.assertRegex(
             block,
             r"\.controls-col\s+\.output-settings-ratio-visual,\s*"
-            r"\.controls-col\s+\.output-settings-count-visual\s*\{[^}]*min-height:\s*44px",
+            r"\.controls-col\s+\.output-settings-count-visual\s*\{[^}]*"
+            r"min-height:\s*clamp\(40px,[^}]*92px\)",
         )
         self.assertNotIn("output-settings-editor-height", responsive)
 

@@ -18,6 +18,13 @@ The app is not notarized. If Gatekeeper blocks first launch, right-click
 or Control-click iLab GPT CONJURE.app, choose Open, and confirm the system
 prompt.
 
-The standard app checks the signed update manifest and opens the matching DMG
-download when a new version is available. Automatic self-replacement is
-intentionally limited to portable packages.
+The standard app checks the signed update manifest. Versions that bundle the
+standard updater show `Install Update`: after you confirm, the app downloads and
+SHA256-verifies the matching DMG, quits, automatically replaces the installed
+app with rollback protection, and relaunches. Data in Application Support is not
+part of the app replacement.
+
+The first version that includes this updater must still be installed manually
+over an older app. If the bundled helper is missing, `Check for Updates` safely
+falls back to opening the matching DMG download. Updates are user-confirmed, not
+silent background installs.

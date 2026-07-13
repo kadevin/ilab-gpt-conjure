@@ -59,6 +59,7 @@ Images API 或 Responses API 形态。
 - 系统设置整合 API 设置、Codex 通道、语言 / Language、存储与通知四个 Tab；API 设置默认第一位。
 - API 供应商以卡片快速选择，默认只读详情，支持显式编辑、复制、删除确认和多供应商排序。
 - 标准 macOS DMG 和 Windows App ZIP 提供 Rust 托盘 / 菜单栏启动器、小兔子图标、系统语言跟随、原生关于窗口，并在首次启动时由用户确认复制旧 portable 数据。
+- 包含标准更新助手的 macOS App 支持用户确认后的一键覆盖：helper 校验 signed manifest 与 DMG SHA256，退出当前 App，带回滚保护地替换并重新启动；用户数据仍保存在应用包外。旧版 macOS App 需要手动引导升级一次，Windows 标准 ZIP 仍手动替换。
 - 过渡期 portable 包继续把数据保存在同级 `data/`，并支持用户确认后的自动替换更新；更新器读取带签名的 `latest.json` manifest、校验 Ed25519 签名和 SHA256、保留 `data/`，并把被替换文件备份到 `.backup/`。
 - 高级本机 OAuth 工作流支持个人本地 Codex 使用，并明确提示接口风险。
 - API 供应商配置，支持 Base URL、API Key、图像模型、调用方式和并发上限。
@@ -128,14 +129,14 @@ http://127.0.0.1:8787/
 ## 应用包下载
 
 当前可用的标准包和一键包见 [下载 / Releases](RELEASES.md)，也可以直接打开
-[GitHub Release v0.6.1](https://github.com/kadevin/ilab-gpt-conjure/releases/tag/v0.6.1)。
+[GitHub Release v0.6.2](https://github.com/kadevin/ilab-gpt-conjure/releases/tag/v0.6.2)。
 
 新用户建议优先下载标准包：
 
-1. macOS：Apple Silicon 下载 `iLab-GPT-CONJURE-macos-arm64-0.6.1.dmg`，
-   Intel 下载 `iLab-GPT-CONJURE-macos-x64-0.6.1.dmg`，然后把
+1. macOS：Apple Silicon 下载 `iLab-GPT-CONJURE-macos-arm64-0.6.2.dmg`，
+   Intel 下载 `iLab-GPT-CONJURE-macos-x64-0.6.2.dmg`，然后把
    `iLab GPT CONJURE.app` 拖到 Applications。
-2. Windows：下载 `iLab-GPT-CONJURE-windows-x64_0.6.1.zip`，
+2. Windows：下载 `iLab-GPT-CONJURE-windows-x64_0.6.2.zip`，
    解压到普通用户目录，双击 `iLab GPT CONJURE.exe`。
 
 标准包的用户数据会写入 macOS 的
@@ -143,6 +144,8 @@ http://127.0.0.1:8787/
 `%APPDATA%\iLab GPT CONJURE`。首次启动时，标准包可以检测相邻旧 portable
 `data/`，并在用户确认后复制旧数据；旧目录不会被移动或删除，目标标准数据目录
 已有 WebUI 数据时不会自动覆盖。
+
+包含标准更新助手的 macOS App 可从菜单栏“检查更新”执行后续一键更新。用户确认后，独立 helper 会下载并校验 signed manifest 对应的 DMG，退出当前 App，带回滚保护地覆盖并重新启动；这不是后台静默安装。`v0.6.1` 及更早标准 App 需要手动覆盖安装首个支持版本一次。Windows 标准 ZIP 仍下载后手动替换。
 
 `v0.5.4` 及更早 portable 用户首次升级到 `0.5.5` 时，建议手动下载完整标准包或完整 portable 包；旧 updater 只保证升级 WebUI/依赖，不保证安装新的小兔子启动器、标准 `.app` / `.exe` 入口和迁移助手。
 

@@ -68,6 +68,7 @@ APP_BUNDLE_ROOT="${BUILD_ROOT}/${APP_BUNDLE_NAME}"
 APP_BUNDLE_CONTENTS="${APP_BUNDLE_ROOT}/Contents"
 APP_BUNDLE_MACOS="${APP_BUNDLE_CONTENTS}/MacOS"
 APP_BUNDLE_RESOURCES="${APP_BUNDLE_CONTENTS}/Resources"
+APP_BUNDLE_HELPERS="${APP_BUNDLE_CONTENTS}/Helpers"
 APP_RESOURCES_APP_PATH="Contents/Resources/app"
 APP_RESOURCES_PYTHON_PATH="Contents/Resources/python"
 APP_DIR="${APP_BUNDLE_RESOURCES}/app"
@@ -262,7 +263,7 @@ mkdir -p "$BUILD_ROOT" "$CACHE_DIR"
 remove_build_path "$APP_BUNDLE_ROOT"
 remove_build_path "$DMG_ROOT"
 rm -f "$DMG_PATH" "$HASH_PATH" "$MANIFEST_PATH"
-mkdir -p "$APP_BUNDLE_MACOS" "$APP_BUNDLE_RESOURCES" "$APP_DIR" "$PYTHON_DIR"
+mkdir -p "$APP_BUNDLE_MACOS" "$APP_BUNDLE_RESOURCES" "$APP_BUNDLE_HELPERS" "$APP_DIR" "$PYTHON_DIR"
 
 for item in "${APP_ITEMS[@]}"; do
   copy_app_item "$item"
@@ -317,9 +318,11 @@ if ! command -v cargo >/dev/null 2>&1; then
   echo "cargo was not found. Install Rust toolchain before building the standard app launcher." >&2
   exit 1
 fi
-cargo build --manifest-path "${REPO_ROOT}/launcher/Cargo.toml" --release --locked
+cargo build --manifest-path "${REPO_ROOT}/launcher/Cargo.toml" --release --locked --bin ilab-conjure-launcher --bin ilab-conjure-standard-updater
 cp "${REPO_ROOT}/launcher/target/release/ilab-conjure-launcher" "${APP_BUNDLE_MACOS}/ilab-conjure-launcher"
 chmod +x "${APP_BUNDLE_MACOS}/ilab-conjure-launcher"
+cp "${REPO_ROOT}/launcher/target/release/ilab-conjure-standard-updater" "${APP_BUNDLE_HELPERS}/ilab-conjure-standard-updater"
+chmod +x "${APP_BUNDLE_HELPERS}/ilab-conjure-standard-updater"
 create_macos_app_icon "${REPO_ROOT}/launcher/assets/rabbit-logo.svg" "${APP_BUNDLE_RESOURCES}/AppIcon.icns" "${BUILD_ROOT}/_app-icon"
 write_macos_app_plist "${APP_BUNDLE_CONTENTS}/Info.plist"
 remove_local_artifacts "$APP_BUNDLE_ROOT"
@@ -338,6 +341,7 @@ cat > "$MANIFEST_PATH" <<JSON
   "project": "${PROJECT_NAME}",
   "version": "${VERSION}",
   "bundle": "iLab GPT CONJURE.app",
+  "standard_updater": "Contents/Helpers/ilab-conjure-standard-updater",
   "dmg": "${DMG_PATH}",
   "sha256": "${SHA256}",
   "python_version": "${PYTHON_VERSION}",

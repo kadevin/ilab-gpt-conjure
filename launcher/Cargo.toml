@@ -12,8 +12,13 @@ base64 = "0.22"
 ed25519-dalek = "2.1"
 open = "5.3.6"
 serde_json = "1.0"
+sha2 = "0.10"
 tray-icon = "0.24.1"
 winit = "0.30"
+
+[[bin]]
+name = "ilab-conjure-standard-updater"
+path = "src/bin/standard_updater.rs"
 
 [target.'cfg(windows)'.build-dependencies]
 winresource = { version = "0.1.31", default-features = false }

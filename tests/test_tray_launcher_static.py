@@ -10,12 +10,24 @@ class TrayLauncherStaticTests(unittest.TestCase):
         manifest = launcher_root / "Cargo.toml"
         main_source = launcher_root / "src" / "main.rs"
         lib_source = launcher_root / "src" / "lib.rs"
+        standard_update_source = launcher_root / "src" / "standard_update.rs"
+        standard_updater_main = launcher_root / "src" / "bin" / "standard_updater.rs"
         build_script = launcher_root / "build.rs"
         readme = launcher_root / "README.md"
         icon_svg = launcher_root / "assets" / "rabbit-logo.svg"
         icon_ico = launcher_root / "assets" / "rabbit-logo.ico"
 
-        for path in (manifest, main_source, lib_source, build_script, readme, icon_svg, icon_ico):
+        for path in (
+            manifest,
+            main_source,
+            lib_source,
+            standard_update_source,
+            standard_updater_main,
+            build_script,
+            readme,
+            icon_svg,
+            icon_ico,
+        ):
             self.assertTrue(path.exists(), f"{path} should exist")
 
         manifest_text = manifest.read_text(encoding="utf-8")
@@ -28,7 +40,14 @@ class TrayLauncherStaticTests(unittest.TestCase):
 
         source = main_source.read_text(encoding="utf-8")
         build_source = build_script.read_text(encoding="utf-8")
-        combined_source = source + "\n" + lib_source.read_text(encoding="utf-8")
+        combined_source = "\n".join(
+            (
+                source,
+                lib_source.read_text(encoding="utf-8"),
+                standard_update_source.read_text(encoding="utf-8"),
+                standard_updater_main.read_text(encoding="utf-8"),
+            )
+        )
         self.assertIn('#![cfg_attr(target_os = "windows", windows_subsystem = "windows")]', source)
         self.assertIn("assets/rabbit-logo.ico", build_source)
         self.assertIn("winresource::WindowsResource::new", build_source)
@@ -84,6 +103,21 @@ class TrayLauncherStaticTests(unittest.TestCase):
         self.assertIn("UpdateOutcome::LaunchedUpdater", combined_source)
         self.assertIn("portable_updater_path", combined_source)
         self.assertIn("launch_portable_updater", combined_source)
+        self.assertIn("StandardMacUpdater", combined_source)
+        self.assertIn("standard_update_helper_path", combined_source)
+        self.assertIn("launch_standard_updater", combined_source)
+        self.assertIn("run_standard_updater", combined_source)
+        self.assertIn("--expected-sha256", combined_source)
+        self.assertIn("--expected-version", combined_source)
+        self.assertIn("--locale", combined_source)
+        self.assertIn("verify_sha256_file", combined_source)
+        self.assertIn("hdiutil", combined_source)
+        self.assertIn("/usr/bin/codesign", combined_source)
+        self.assertIn("/usr/bin/lipo", combined_source)
+        self.assertIn("com.ilab.gpt-conjure", combined_source)
+        self.assertIn("replace_staged_app_transaction", combined_source)
+        self.assertIn("with administrator privileges", combined_source)
+        self.assertIn('open\").arg("-n"', combined_source)
         self.assertIn("ILAB_CONJURE_APP_DIR", combined_source)
         self.assertIn("--auto", combined_source)
         self.assertIn("--restart-launcher", combined_source)
@@ -131,3 +165,5 @@ class TrayLauncherStaticTests(unittest.TestCase):
         self.assertIn("signed `latest.json` manifest", readme_text)
         self.assertIn("Install Update", readme_text)
         self.assertIn("updater handoff", readme_text)
+        self.assertIn("standard macOS app", readme_text)
+        self.assertIn("rollback", readme_text.lower())
