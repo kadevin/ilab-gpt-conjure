@@ -155,9 +155,14 @@
     call2(methods, "refreshRecentAssets");
     window.startRealtimeUpdates?.({ migrateLegacyArchives: true });
     void window.refreshQueue?.();
-    Promise.resolve(call2(methods, "refreshTasks", { migrateLegacyArchives: true })).finally(() => {
-      state32.realtimeSnapshotNeedsArchiveMigration = false;
-    });
+    void Promise.resolve(call2(methods, "refreshTasks", { migrateLegacyArchives: true })).then(
+      () => {
+        state32.realtimeSnapshotNeedsArchiveMigration = false;
+      },
+      (error) => {
+        console.error(error);
+      }
+    );
     call2(methods, "startUiClock");
     call2(methods, "updateRequestPreview");
     call2(methods, "openSystemSettingsFromUrl");

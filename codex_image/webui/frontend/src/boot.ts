@@ -37,9 +37,14 @@ export function bootWebUI(state: WebUIState, els: WebUIElements, methods: Legacy
   call(methods, "refreshRecentAssets");
   window.startRealtimeUpdates?.({ migrateLegacyArchives: true });
   void window.refreshQueue?.();
-  Promise.resolve(call(methods, "refreshTasks", { migrateLegacyArchives: true })).finally(() => {
-    state.realtimeSnapshotNeedsArchiveMigration = false;
-  });
+  void Promise.resolve(call(methods, "refreshTasks", { migrateLegacyArchives: true })).then(
+    () => {
+      state.realtimeSnapshotNeedsArchiveMigration = false;
+    },
+    (error) => {
+      console.error(error);
+    },
+  );
   call(methods, "startUiClock");
   call(methods, "updateRequestPreview");
   call(methods, "openSystemSettingsFromUrl");
