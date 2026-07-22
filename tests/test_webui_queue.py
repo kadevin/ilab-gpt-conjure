@@ -667,7 +667,10 @@ class WebUIQueueTests(unittest.TestCase):
             )
             app.state.queue_manager.max_attempts = 3
             client = TestClient(app)
-            created = client.post("/api/generate", data={"prompt": "bad request", "size": "1024x1024", "quality": "low", "n": "4"})
+            created = client.post(
+                "/api/generate",
+                data={"prompt": "bad request", "size": "1024x1024", "quality": "low", "n": "4", "codex_mode": "responses"},
+            )
             task_id = created.json()["task"]["task_id"]
 
             with self.assertRaisesRegex(RuntimeError, "invalid_request_error"):
@@ -741,7 +744,10 @@ class WebUIQueueTests(unittest.TestCase):
             app.state.queue_manager.channels = [QueueChannel(channel_id="codex:local", auth_source="codex")]
             app.state.queue_manager.max_attempts = 3
             client = TestClient(app)
-            created = client.post("/api/generate", data={"prompt": "many", "size": "1024x1024", "quality": "low", "n": "4"})
+            created = client.post(
+                "/api/generate",
+                data={"prompt": "many", "size": "1024x1024", "quality": "low", "n": "4", "codex_mode": "responses"},
+            )
             task_id = created.json()["task"]["task_id"]
 
             with self.assertRaisesRegex(RuntimeError, "usage limit"):
@@ -900,7 +906,10 @@ class WebUIQueueTests(unittest.TestCase):
                 auto_start_queue=False,
             )
             client = TestClient(app)
-            created = client.post("/api/generate", data={"prompt": "many", "size": "1024x1024", "quality": "low", "n": "2"})
+            created = client.post(
+                "/api/generate",
+                data={"prompt": "many", "size": "1024x1024", "quality": "low", "n": "2", "codex_mode": "responses"},
+            )
             task_id = created.json()["task"]["task_id"]
 
             worker_error: list[BaseException] = []

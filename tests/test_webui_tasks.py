@@ -1382,7 +1382,10 @@ class WebUITaskTests(unittest.TestCase):
                 auto_start_queue=False,
             )
             client = TestClient(app)
-            created = client.post("/api/generate", data={"prompt": "bad retry", "size": "1024x1024", "quality": "low", "n": "2"})
+            created = client.post(
+                "/api/generate",
+                data={"prompt": "bad retry", "size": "1024x1024", "quality": "low", "n": "2", "codex_mode": "responses"},
+            )
             task_id = created.json()["task"]["task_id"]
 
             with self.assertRaisesRegex(RuntimeError, "invalid_request_error"):
